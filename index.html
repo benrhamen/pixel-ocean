@@ -1166,14 +1166,10 @@ function scrHome(scr){
  var whale=spById("humpback");var cv=drawSprite(hero,whale,{});cv.style.width="240px";cv.style.margin="0 auto";
  h.appendChild(hero);
  scr.appendChild(h);
- var r1=el("div","row");
  var b1=el("button","big","EXPEDITIONS<br><span class='small'>explore 6 ocean zones</span>");b1.onclick=function(){sfx("ok");go("zones")};
- var b2=el("button","big","CARD DECK<br><span class='small'>"+gotCount()+" / "+SP.length+" collected</span>");b2.onclick=function(){sfx("flip");go("deck")};
- r1.appendChild(b1);r1.appendChild(b2);scr.appendChild(r1);
- var r2=el("div","row");
  var b3=el("button","big","GAMES<br><span class='small'>quiz, memory, sorting</span>");b3.onclick=function(){sfx("ok");go("games")};
- var b4=el("button","big","HOW TO PLAY");b4.onclick=function(){go("help")};
- r2.appendChild(b3);r2.appendChild(b4);scr.appendChild(r2);
+ var b2=el("button","big","CARD DECK<br><span class='small'>"+gotCount()+" / "+SP.length+" collected</span>");b2.onclick=function(){sfx("flip");go("deck")};
+ [b1,b3,b2].forEach(function(b){var r=el("div","row");r.appendChild(b);scr.appendChild(r)});
  var r3=el("div","row");
  var snd=el("button",null,"Sound: "+(S.snd?"on":"off"));snd.onclick=function(){S.snd=S.snd?0:1;save();snd.textContent="Sound: "+(S.snd?"on":"off");sfx("ok")};
  r3.appendChild(snd);scr.appendChild(r3);
@@ -1436,7 +1432,7 @@ function scrGames(scr){
 }
 /* ---------- deep descent: dodge the corals ---------- */
 function scrSub(scr,level){
- var CONF={e:{name:"EASY",target:300,speed:100,gap:150,rows:1.9,cap:280,ramp:.24,tight:.045,mingap:88},m:{name:"MEDIUM",target:500,speed:130,gap:125,rows:1.55,cap:300,ramp:.26,tight:.04,mingap:80},h:{name:"HARD",target:800,speed:165,gap:105,rows:1.25,cap:320,ramp:.28,tight:.035,mingap:72},u:{name:"UNLIMITED",target:Infinity,speed:100,gap:150,rows:1.9,unl:1,cap:320,ramp:.24,tight:.045,mingap:88}}[level]||{name:"EASY",target:300,speed:100,gap:150,rows:1.9,cap:280,ramp:.24,tight:.045,mingap:88};
+ var CONF={e:{name:"EASY",target:300,speed:90,gap:175,rows:2,cap:210,ramp:.12,tight:.02,mingap:125},m:{name:"MEDIUM",target:500,speed:105,gap:155,rows:1.8,cap:230,ramp:.15,tight:.025,mingap:115},h:{name:"HARD",target:800,speed:125,gap:140,rows:1.6,cap:240,ramp:.18,tight:.028,mingap:105},u:{name:"UNLIMITED",target:Infinity,speed:90,gap:175,rows:2,unl:1,cap:240,ramp:.12,tight:.02,mingap:120}}[level]||{name:"EASY",target:300,speed:90,gap:175,rows:2,cap:210,ramp:.12,tight:.02,mingap:125};
  CONF.gap0=CONF.gap;CONF.rows0=CONF.rows;
  scr.appendChild(el("h2",null,"DEEP DESCENT &middot; "+CONF.name));
  var wrap=el("div",null,null);wrap.id="divewrap";
@@ -1452,10 +1448,10 @@ function scrSub(scr,level){
  window.__poSub=D;
  var CCOL=[["#2de2c8","#189e8c"],["#3ddc84","#22a45c"],["#7fd8ff","#4a9ec7"]];
  function mkRow(y){
-  var gapW=CONF.gap,gapX=60+Math.random()*(W-120);
-  var row={y:y,gapX:gapX,gapW:gapW,cl:[]};
+  var gapW=CONF.gap,lo=60,hi=W-60;if(D.lastGapX!=null){lo=Math.max(lo,D.lastGapX-100);hi=Math.min(hi,D.lastGapX+100)}var gapX=lo+Math.random()*(hi-lo);D.lastGapX=gapX;
+  var row={y:y,gapX:gapX,gapW:gapW,cl:[]};var jp=Math.min(.3,Math.max(0,(D.depth-250)*0.0003)),isJ=Math.random()<jp;
   var x=0;
-  while(x<W){
+  while(!isJ&&x<W){
    var w=26+Math.random()*30;
    var cx=x+w/2;
    if(cx+w/2<gapX-gapW/2-6||cx-w/2>gapX+gapW/2+6){
@@ -1464,8 +1460,7 @@ function scrSub(scr,level){
    }
    x+=w+4;
   }
-  var jp=Math.min(.4,Math.max(0,(D.depth-80)*0.0005));
-  if(Math.random()<jp)row.jelly={ph:Math.random()*6.28,sp:1.6+Math.random()*1.2,x:gapX,y:y-46};
+  if(isJ)row.jelly={ph:Math.random()*6.28,free:1,sp:.6+Math.random()*.5,side:Math.random()<.5?-1:1,x:gapX,y:y-46};
   D.rows.push(row);
  }
  function coralDraw(cl){
@@ -1565,7 +1560,7 @@ function scrSub(scr,level){
    D.t+=dt;
    var spd=Math.min(D.conf.cap,D.conf.speed+D.depth*D.conf.ramp);
    D.conf.gap=Math.max(D.conf.mingap,D.conf.gap0-D.depth*D.conf.tight);
-   D.conf.rows=Math.max(1.05,D.conf.rows0-D.depth*0.0009);
+   D.conf.rows=Math.max(1.3,D.conf.rows0-D.depth*0.0009);
    D.depth+=spd*dt*.55;
    if(D.invuln>0)D.invuln-=dt;
    D.spawnY-=spd*dt;
@@ -1577,15 +1572,15 @@ function scrSub(scr,level){
    if(s.tx!=null){s.x+=(s.tx-s.x)*6*dt;s.y+=(s.ty-s.y)*6*dt}
    s.x=Math.max(36,Math.min(W-36,s.x));s.y=Math.max(50,Math.min(H-40,s.y));
    D.rows.forEach(function(r){
-    if(r.jelly){var jw=Math.min(r.gapW/2-22,42);if(jw<4)jw=4;r.jelly.x=r.gapX+Math.sin(D.t*r.jelly.sp+r.jelly.ph)*jw;r.jelly.y=r.y-46;
-     if(D.invuln<=0){var jx=r.jelly.x,jy=r.jelly.y;if(s.y+12>jy-13&&s.y-16<jy+11&&s.x+22>jx-11&&s.x-22<jx+11)hit()}}
+    if(r.jelly){r.jelly.x=Math.max(34,Math.min(W-34,r.gapX+Math.sin(D.t*r.jelly.sp+r.jelly.ph)*90));r.jelly.y=r.y-46;
+     if(D.invuln<=0){var jx=r.jelly.x,jy=r.jelly.y;if(s.y+12>jy-13&&s.y-16<jy+11&&s.x+17>jx-11&&s.x-17<jx+11)hit()}}
     r.cl.forEach(function(cl){
      cl.rowY=r.y;
      if(D.invuln>0)return;
      var top=r.y-cl.h,bot=r.y;
      if(s.y+12>top&&s.y-16<bot){
       var hw=cl.w*.36;
-      if(s.x+22>cl.x-hw&&s.x-22<cl.x+hw)hit();
+      if(s.x+17>cl.x-hw&&s.x-17<cl.x+hw)hit();
      }
     });
    });
@@ -1753,7 +1748,7 @@ function scrSort(scr){
  round();
 }
 /* ---------- boot ---------- */
-$("foot").innerHTML="Pixel Ocean - a Pixel Arcade game. Code and pixel art are original; card photos are credited to their photographers and sources are listed under How to Play.";
+$("foot").innerHTML="Pixel Ocean - a Pixel Arcade game. Code and pixel art are original; card photos are credited to their photographers and sources are listed under <a href=\"#\" id=\"credlink\" style=\"color:inherit\">Credits</a>.";var cl=document.getElementById("credlink");if(cl)cl.onclick=function(e){e.preventDefault();go("help")};
 renderPlayer($("player"));
 var h0=(location.hash||"").replace("#","");
 var m0=h0.match(/^(card|dive|quiz|mem)=(.+)$/);
