@@ -1417,7 +1417,7 @@ function scrGames(scr){
   var r=el("div","row");
   lv.forEach(function(L,i){
    var un=i===0||state[lv[i-1][0]]>=3;
-   var b=el("button",un?"":"dim",L[1]+(un?"<br><span class='small'>"+(state[L[0]]||0)+"/3 clears</span>":"<br>"+svgI(IC.lock,"#8fb6cc",12)));
+   var b=el("button",un?"":"dim",L[1]+(un?"<br><span class='small'>"+((state[L[0]]||0)<3?(state[L[0]]||0)+"/3 clears":(state[L[0]]||0)+" clears - goal reached")+"</span>":"<br>"+svgI(IC.lock,"#8fb6cc",12)));
    if(un)b.onclick=function(){fn(L[0])};else b.disabled=true;
    r.appendChild(b);
   });
@@ -1539,7 +1539,7 @@ function scrSub(scr,level){
   save();
   var ov=D.overlay;ov.innerHTML="";ov.style.display="block";
   ov.appendChild(el("h2",null,cleared?"TARGET DEPTH REACHED!":"SUB DAMAGED"));
-  ov.appendChild(el("div","panel",CONF.unl?("Depth: "+dm+" m.<br>Best unlimited: "+best+" m."+(dm>prev&&prev>0?"<br>New best!":"")):("Depth: "+dm+" m"+(cleared?" / "+CONF.target+" m":"")+".<br>Best on "+CONF.name.toLowerCase()+": "+best+" m.<br>Clears: "+(S.sub[lvl]||0)+" / 3.")));
+  ov.appendChild(el("div","panel",CONF.unl?("Depth: "+dm+" m.<br>Best unlimited: "+best+" m."+(dm>prev&&prev>0?"<br>New best!":"")):("Depth: "+dm+" m"+(cleared?" / "+CONF.target+" m":"")+".<br>Best on "+CONF.name.toLowerCase()+": "+best+" m.<br>"+((S.sub[lvl]||0)<3?"Clears: "+(S.sub[lvl]||0)+" / 3.":"Clears: "+(S.sub[lvl]||0)+" - unlock goal reached."))));
   var r1=el("div","row");var b1=el("button","big","Dive again");b1.onclick=function(){render("sub",lvl)};r1.appendChild(b1);
   var b2=el("button","big","Games");b2.onclick=function(){go("games")};r1.appendChild(b2);
   ov.appendChild(r1);
@@ -1592,7 +1592,7 @@ function scrSub(scr,level){
    if(Math.random()<dt*3)D.parts.push({x:Math.random()*W,y:H+8,v:-30-Math.random()*40,r:1+Math.random()*2.5});
    D.parts.forEach(function(p){p.y+=p.v*dt});
    D.parts=D.parts.filter(function(p){return p.y>-10});
-   if(!D.conf.unl&&!D.cleared&&D.depth>=D.conf.target){D.cleared=true;S.sub[D.level]=(S.sub[D.level]||0)+1;save();sfx("clear");showToast("Target depth passed - clear "+(S.sub[D.level]||0)+" / 3! The dive goes on.")}
+   if(!D.conf.unl&&!D.cleared&&D.depth>=D.conf.target){D.cleared=true;S.sub[D.level]=(S.sub[D.level]||0)+1;save();sfx("clear");showToast("Target depth passed - clear "+(S.sub[D.level]||0)+((S.sub[D.level]||0)<3?" / 3":" - unlock goal reached")+"! The dive goes on.")}
   }
   var gr=g.createLinearGradient(0,0,0,H);
   var dk=D.conf.unl?Math.min(1,D.depth/1200):Math.min(1,D.depth/D.conf.target);
