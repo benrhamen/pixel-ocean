@@ -1,0 +1,1148 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pixel Ocean</title>
+<meta name="description" content="Dive, scan and collect ocean discovery cards. A Pixel Arcade game about marine life, for kids and parents.">
+<script data-goatcounter="https://pixelarcade.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<style>
+body{margin:0;background:#081226;color:#9fefff;font-family:"Courier New",monospace;display:flex;justify-content:center}
+#a{width:100%;max-width:720px;padding:12px;box-sizing:border-box}
+h1{color:#37e0ff;text-shadow:0 0 12px #37e0ff66;text-align:center;letter-spacing:5px;margin:4px 0 8px;font-size:26px}
+h2{color:#7fd8ff;font-size:17px;letter-spacing:2px;margin:14px 0 6px}
+button{font:inherit;cursor:pointer;background:#0d1e3a;color:#9fefff;border:1px solid #37b6e0;min-height:42px}
+button:active{transform:translateY(1px)}
+.row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.row button{flex:1 1 0;min-width:72px;box-sizing:border-box}
+.row>button:only-child{flex:1 1 100%}
+.on{background:#123f66!important;border-color:#5fd0ff!important;color:#fff!important}
+.panel{border:1px solid #2a4a6a;background:#0b1830;padding:10px;margin:10px 0;color:#cfeaff;font-size:14px;line-height:1.5}
+.big{font-size:17px;min-height:52px;font-weight:bold;letter-spacing:1px}
+.center{text-align:center}
+.small{font-size:12px;color:#8fb6cc}
+.dim{opacity:.55}
+canvas.pix{image-rendering:pixelated}
+.player-card{display:flex;gap:12px;align-items:center;border:1px solid #2a5a4a;padding:8px;margin:8px 0;color:#fff;font-size:13px;background:#0b1830}
+.cbadge{display:inline-block;border:1px solid;border-radius:3px;padding:0 4px;font-size:9px;letter-spacing:1px;vertical-align:1px}
+.cstat{text-align:center;background:#0a2540;padding:2px 0 6px;font-size:10px}
+.cardphoto{width:216px;height:150px;object-fit:cover;border-radius:3px;display:block;margin:0 auto;background:#08233d}
+.photocred{font-size:9px;color:#8fb6cc;margin-top:2px;line-height:1.3}
+.photocred a{color:#8fb6cc}
+.dphoto{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;display:block}
+.mphoto{width:100%;height:100%;object-fit:cover;border-radius:4px}
+.qphoto{width:64px;height:48px;object-fit:cover;border-radius:4px;display:block}
+.sortphoto{width:180px;height:135px;object-fit:cover;border-radius:4px;margin:0 auto;display:block;background:#08233d}
+.avatar-pixel{width:48px;height:64px;image-rendering:pixelated;flex-shrink:0}
+.player-card p{margin:3px 0}
+.tag{display:inline-block;border:1px solid #2a4a6a;padding:1px 6px;margin:1px 2px;font-size:11px;color:#7fd8ff}
+/* card */
+.flipzone{perspective:1000px;cursor:pointer}
+.card3d{position:relative;width:252px;height:328px;margin:8px auto;transform-style:preserve-3d;transition:transform .55s}
+.card3d.flip{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:3px solid #d9c48a;border-radius:10px;overflow:hidden;background:#071c33;color:#fff}
+.cface-b{transform:rotateY(180deg)}
+.cseries{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(90deg,#123f2a,#123f66);color:#e8f6e8;font-size:11px;letter-spacing:1px;padding:5px 8px;border-bottom:2px solid #d9c48a}
+.cnum{color:#ffd23f;font-weight:bold}
+.cname{background:#0a2540;border-top:2px solid #d9c48a;text-align:center;padding:7px 4px 5px;font-size:16px;font-weight:bold;letter-spacing:1px;color:#fff}
+.csub{text-align:center;font-size:10px;color:#8fb6cc;padding-bottom:5px;background:#0a2540}
+.cback{padding:9px 12px;font-size:12px;line-height:1.35;height:100%;box-sizing:border-box;color:#dff2ff}
+.cback h3{margin:2px 0 1px;font-size:16px;color:#7fd8ff}
+.cback .sci{font-style:italic;color:#b9d8ea;font-size:11.5px}
+.cback .lab{color:#ffd23f}
+.cback p{margin:5px 0}
+.cfact{border-top:1px dashed #2a4a6a;margin-top:7px;padding-top:7px;color:#cfeaff}
+.stars svg{margin-right:1px}
+.deck{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.mini{border:2px solid #2a4a6a;border-radius:6px;background:#071c33;padding:4px;cursor:pointer;text-align:center}
+.mini .nm{font-size:10.5px;color:#dff2ff;line-height:1.15;min-height:24px;display:block}
+.mini.got{border-color:#d9c48a}
+.mini.miss{opacity:.75}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
+.chips button{min-height:32px;font-size:12px;padding:2px 8px}
+/* expedition */
+#divewrap{position:relative;border:2px solid #2a4a6a;margin-top:8px}
+#dive{display:block;width:100%;height:430px;background:#0a2540;touch-action:none}
+.hud{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.hud .tg{width:44px;height:32px;border:1px solid #2a4a6a;background:#0b1830;position:relative;flex-shrink:0}
+.hud .tg.done{border-color:#3dff6e}
+.airbar{flex:1 1 120px;height:14px;border:1px solid #37b6e0;position:relative;min-width:100px}
+.airbar i{position:absolute;inset:1px;background:linear-gradient(90deg,#29e7ff,#3dff6e);display:block}
+.tbtn{font-size:11px;min-height:30px}
+.toast{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#0d1e3add;border:1px solid #5fd0ff;color:#fff;padding:6px 12px;font-size:13px;display:none;z-index:5}
+/* quiz / sort */
+.opt{display:block;width:100%;margin:7px 0;min-height:48px;font-size:15px}
+.ok{background:#0a3a1a!important;border-color:#3dff6e!important;color:#3dff6e!important}
+.no{background:#2a1408!important;border-color:#e0483a!important;color:#ff9a7a!important}
+.clue{border-left:3px solid #ffd23f;padding:6px 10px;margin:6px 0;background:#0d1e3a;font-size:14px;color:#fff}
+.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.catgrid button{display:flex;align-items:center;gap:8px;justify-content:flex-start;padding:6px 10px;font-size:14px}
+/* memory */
+.mgrid{display:grid;gap:6px;margin-top:8px}
+.mcard{aspect-ratio:3/4;border:2px solid #2a4a6a;border-radius:6px;background:repeating-linear-gradient(45deg,#0d2f4f,#0d2f4f 8px,#123f66 8px,#123f66 16px);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+.mcard.open{background:#071c33;border-color:#d9c48a}
+.mcard.done{opacity:.45;border-color:#3dff6e;cursor:default}
+.ico{width:18px;height:18px;flex-shrink:0}
+.zcard{border:1px solid #2a4a6a;background:#0b1830;margin:8px 0;padding:10px}
+.zcard h3{margin:2px 0;color:#7fd8ff;font-size:16px}
+.zbar{height:6px;background:#0d1e3a;border:1px solid #2a4a6a;margin-top:6px}
+.zbar i{display:block;height:100%;background:#3dff6e}
+kbd{border:1px solid #2a4a6a;padding:0 4px;font-size:11px}
+.csrc{font-size:9px;color:#5f86a0;margin:4px 0 0}
+.srcs summary{cursor:pointer;color:#7fd8ff;font-weight:bold;margin:8px 0}
+.srcline{font-size:11px;margin:2px 0}
+.srcline a{color:#9fefff;text-decoration:none}
+</style></head>
+<body><div id="a">
+<div class="row"><button id="btnHub" type="button">&#9664; PIXEL ARCADE</button></div>
+<div class="row"><button id="btnBack" type="button">Back</button></div>
+<h1 id="h1">PIXEL OCEAN</h1>
+<div id="player" class="player-card" style="display:none"></div>
+<div id="scr"></div>
+<div id="foot" class="small center" style="margin-top:14px"></div>
+</div>
+<script>
+"use strict";
+var $=function(id){return document.getElementById(id)};
+function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=(Math.random()*(i+1))|0,t=a[i];a[i]=a[j];a[j]=t}return a}
+function pad(n){return(n<10?"0":"")+n}
+/* ---------- save ---------- */
+var SAVEKEY="pxocean.v1";
+function normS(o){o.got=o.got||{};o.clears=o.clears||{};o.quiz=o.quiz||{e:0,m:0,h:0};o.mem=o.mem||{e:0,m:0,h:0};if(typeof o.sort!=="number")o.sort=0;if(o.snd===undefined)o.snd=1;return o}
+var S=(function(){try{var o=JSON.parse(localStorage.getItem(SAVEKEY));if(o&&typeof o==="object")return normS(o)}catch(e){}return normS({})})();
+function save(){try{localStorage.setItem(SAVEKEY,JSON.stringify(S))}catch(e){}}
+function gotCount(){var n=0;for(var k in S.got)if(S.got[k])n++;return n}
+/* ---------- sound ---------- */
+var AC=null;
+function beep(f,d,type,g){if(!S.snd)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),v=AC.createGain();o.type=type||"sine";o.frequency.value=f;v.gain.value=g||.07;o.connect(v);v.connect(AC.destination);o.start();v.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+(d||.12));o.stop(AC.currentTime+(d||.12))}catch(e){}}
+function sfx(n){if(n==="scan"){beep(660,.09,"square",.05);setTimeout(function(){beep(990,.12,"square",.05)},90)}
+else if(n==="ok"){beep(523,.1);setTimeout(function(){beep(659,.1)},100);setTimeout(function(){beep(784,.18)},200)}
+else if(n==="no"){beep(196,.2,"sawtooth",.05)}
+else if(n==="flip"){beep(440,.06,"triangle",.05)}
+else if(n==="clear"){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f,.22)},i*140)})}}
+/* ---------- profile ---------- */
+var PROF=null;
+function paProfile(){try{var o=JSON.parse(localStorage.getItem("pa.profile.v1"));if(!o||typeof o!=="object")return null;
+ return {name:String(o.name||"").replace(/[^A-Za-z0-9 \-!._]/g,"").slice(0,12),
+ skinHex:/^#[0-9a-fA-F]{6}$/.test(o.skinHex||"")?o.skinHex.toLowerCase():null,
+ hairHex:/^#[0-9a-fA-F]{6}$/.test(o.hairHex||"")?o.hairHex.toLowerCase():null,
+ outfitHex:/^#[0-9a-fA-F]{6}$/.test(o.outfitHex||"")?o.outfitHex.toLowerCase():null}}catch(e){return null}}
+var EDIT_URL="https://benrhamen.github.io/pixel-arcade/?back="+encodeURIComponent(location.href)+"#character";
+function drawFallbackAvatar(cv){
+ var g=cv.getContext("2d");cv.width=96;cv.height=128;g.imageSmoothingEnabled=false;
+ var u=4,skin=(PROF&&PROF.skinHex)||"#f5c28f",suit=(PROF&&PROF.outfitHex)||"#29a7ff";
+ var brass="#d9a441",brassD="#a4742a",glass="#bfe6f5",vest="#123f66",tank="#7a8a99",tankD="#5a6a79",fin="#37b6e0",finD="#1f7ab8";
+ function p(x,y,w,h,c){g.fillStyle=c;g.fillRect(x*u,y*u,w*u,h*u)}
+ /* bubbles */
+ p(1,2,1,1,glass);p(3,0,1,1,glass);
+ /* air tank behind right shoulder */
+ p(17,11,2,11,tank);p(17,11,1,11,tankD);p(17,10,2,1,tankD);
+ /* hose tank to helmet */
+ p(18,9,1,1,"#8a97a0");p(17,8,1,1,"#8a97a0");
+ /* helmet: stepped dome */
+ p(9,2,6,1,brass);p(7,3,10,1,brass);p(6,4,12,7,brass);p(7,11,10,1,brass);
+ /* glass window */
+ p(7,4,10,6,glass);
+ /* face inside */
+ p(8,5,8,5,skin);
+ /* eyes + smile */
+ p(9,7,1,1,"#101024");p(14,7,1,1,"#101024");
+ p(10,9,4,1,"#c96a5a");
+ /* glass shine */
+ p(8,4,1,1,"#ffffff");
+ /* rim + collar */
+ p(6,11,12,1,brassD);p(8,12,8,1,brassD);
+ /* wetsuit body with stepped shoulders */
+ p(7,13,10,1,suit);p(6,14,12,9,suit);
+ /* BCD vest */
+ p(9,14,6,6,vest);
+ /* strap + buckle */
+ p(6,17,12,1,"#0d2f4f");p(11,17,2,1,"#d9c48a");
+ /* arms, stepped diagonal */
+ p(5,14,1,4,suit);p(4,18,1,3,suit);p(4,21,1,1,vest);
+ p(18,14,1,4,suit);p(19,18,1,3,suit);p(19,21,1,1,vest);
+ /* legs */
+ p(8,23,2,4,suit);p(14,23,2,4,suit);
+ /* flippers */
+ p(6,27,5,2,fin);p(13,27,5,2,fin);p(6,27,5,1,finD);p(13,27,5,1,finD);
+}
+function renderPlayer(host){
+ PROF=paProfile();
+ host.innerHTML="";host.style.display="";
+ var cv=document.createElement("canvas");cv.className="avatar-pixel";
+ drawFallbackAvatar(cv);
+ host.appendChild(cv);
+ var d=el("div");
+ var nm=PROF&&PROF.name?PROF.name:"Explorer";
+ d.appendChild(el("p",null,"<b>"+(PROF&&PROF.name?("Explorer "+nm):nm)+"</b>"));
+ d.appendChild(el("p",null,"Cards: <b>"+gotCount()+" / "+SP.length+"</b>"));
+ var lk=el("p");var a=document.createElement("a");a.href=EDIT_URL;a.style.color="#7fd8ff";a.style.fontSize="12px";a.textContent="Change name & avatar";lk.appendChild(a);d.appendChild(lk);
+ host.appendChild(d);
+}
+(function loadPA(){var s=document.createElement("script");s.src="https://benrhamen.github.io/pixel-arcade/profile.js";s.onload=function(){renderPlayer($("player"))};s.onerror=function(){};var t=setTimeout(function(){},4000);document.head.appendChild(s)})();
+</script>
+<script>
+"use strict";
+/* ---------- pixel art kit ---------- */
+var SW=80,SH=56;
+function mkCan(w,h){var c=document.createElement("canvas");c.width=w;c.height=h;return c}
+function kit(g){
+ var k={g:g,
+ px:function(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))},
+ ell:function(cx,cy,rx,ry,c){g.fillStyle=c;g.beginPath();g.ellipse(cx,cy,Math.max(.5,rx),Math.max(.5,ry),0,0,7);g.fill()},
+ cir:function(cx,cy,r,c){g.fillStyle=c;g.beginPath();g.arc(cx,cy,Math.max(.5,r),0,7);g.fill()},
+ tri:function(x1,y1,x2,y2,x3,y3,c){g.fillStyle=c;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.lineTo(x3,y3);g.closePath();g.fill()},
+ ln:function(x1,y1,x2,y2,c,w){g.strokeStyle=c;g.lineWidth=w||1;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke()},
+ eye:function(x,y,r){k.cir(x,y,(r||1.6)+0.8,"#f4fbff");k.cir(x,y,r||1.6,"#101024");k.px(x+.5,y-1,1,1,"#fff")}
+ };
+ return k;
+}
+function g_alpha(g,a){g.globalAlpha=a}
+function hash(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function rnd(seed){var t=hash(seed);return function(){t=(t*1103515245+12345)>>>0;return t/4294967296}}
+/* body-plan painters; canvas is 80x56, animal faces right */
+var PLANS={
+fish:function(k,p){var cx=40,cy=p.cy||28,rx=p.len/2,ry=p.h/2;
+ k.tri(cx-rx+3,cy,cx-rx-(p.tailL||8),cy-(p.tailH||7),cx-rx-(p.tailL||8),cy+(p.tailH||7),p.tailc||p.c);
+ if(p.dorsal!==0)k.tri(cx-rx*.3,cy-ry+1,cx-rx*.05,cy-ry-(p.dorsal||6),cx+rx*.35,cy-ry+1,p.fin||p.c);
+ k.ell(cx,cy,rx,ry,p.c);
+ if(p.belly)k.ell(cx+rx*.1,cy+ry*.42,rx*.82,ry*.6,p.belly);
+ if(p.wings){k.tri(cx-2,cy-2,cx-14,cy-14,cx+8,cy-6,p.fin);k.tri(cx-2,cy+2,cx-14,cy+14,cx+8,cy+6,p.fin)}
+ if(p.pat&&p.pat.t==="stripes"){var n=p.pat.n||3;for(var i=1;i<=n;i++){var sx=cx-rx+2*rx*i/(n+1),f=(sx-cx)/rx,hh=ry*Math.sqrt(Math.max(0,1-f*f));
+   if(p.pat.bd)k.px(sx-2,cy-hh,4,hh*2,p.pat.bd);k.px(sx-1,cy-hh,2,hh*2,p.pat.c)}}
+ if(p.pat&&p.pat.t==="spots"){var r=rnd(p.id||"sp");for(var j=0;j<(p.pat.n||8);j++){var a=r()*6.28,d=r()*.75;k.cir(cx+Math.cos(a)*rx*d,cy+Math.sin(a)*ry*d,1+(r()*1.4|0),p.pat.c)}}
+ if(p.lights){for(var l=0;l<5;l++)k.cir(cx-rx*.5+l*rx*.28,cy+ry*.45,1,"#aef4ff")}
+ k.tri(cx+rx*.15,cy+1,cx+rx*.42,cy+ry*.7,cx-rx*.05,cy+ry*.55,p.fin||p.c);
+ if(p.stilts){k.ln(cx-6,cy+ry-1,cx-10,54,p.fin,1.6);k.ln(cx+6,cy+ry-1,cx+9,54,p.fin,1.6);k.ln(cx-rx-8,cy+5,cx-rx-14,54,p.fin,1.6)}
+ if(p.rattail)k.ln(cx-rx-8,cy,cx-rx-20,cy+4,p.c,2);
+ k.eye(cx+rx*.55,cy-ry*.25,p.eye==="big"?2.6:1.6);
+ if(p.mouth==="big"){k.ln(cx+rx*.6,cy+2,cx+rx-1,cy+4,"#0a0a12",1.6);k.tri(cx+rx-2,cy+4,cx+rx-5,cy+7,cx+rx-7,cy+4,"#f4fbff")}
+ else k.px(cx+rx-2,cy+1,2,1,"#0a0a12");
+},
+shark:function(k,p){var cx=40,cy=28,rx=p.len/2,ry=p.h/2;
+ k.tri(cx-rx+4,cy,cx-rx-9,cy-9,cx-rx-6,cy,p.tailc||p.c);k.tri(cx-rx+4,cy,cx-rx-9,cy+6,cx-rx-6,cy,p.tailc||p.c);
+ k.ell(cx,cy,rx,ry,p.c);
+ k.tri(cx+rx-3,cy,cx+rx+5,cy-3,cx+rx+5,cy+3,p.c);
+ if(p.belly)k.ell(cx+2,cy+ry*.45,rx*.85,ry*.55,p.belly);
+ k.tri(cx-4,cy-ry+1,cx+2,cy-ry-7,cx+8,cy-ry+1,p.c);
+ k.tri(cx+2,cy+3,cx-6,cy+9,cx+10,cy+7,p.c);
+ if(p.pat&&p.pat.t==="spots"){var r=rnd(p.id||"sh");for(var j=0;j<14;j++){var a=r()*6.28,d=r()*.8;k.cir(cx+Math.cos(a)*rx*d,cy+Math.sin(a)*ry*d*.8,1,p.pat.c)}}
+ k.eye(cx+rx*.6,cy-2,1.6);
+ k.ln(cx+rx*.75,cy+2,cx+rx*.95,cy+3,"#0a0a12",1);
+},
+eel:function(k,p){
+ for(var x=8;x<=66;x+=2){var t=(x-8)/58,y=28+Math.sin(x*.22)*5,d=3+t*(p.gulper?9:4);k.cir(x,y,d/2+1.4,p.c)}
+ k.cir(68,26,p.gulper?7:4.4,p.c);
+ if(p.belly)k.cir(68,28,p.gulper?5:3,p.belly);
+ if(p.gulper){k.cir(72,29,6,"#101024");k.cir(70,27,4,p.c);k.ln(66,30,76,33,"#0a0a12",1.5);k.cir(10,28+Math.sin(10*.22)*5-2,1.2,"#9fd8ff")}
+ else{k.ln(66,29,72,30,"#0a0a12",1.2)}
+ k.eye(66,23,1.8);
+},
+ray:function(k,p){var cx=38,cy=26;
+ if(p.wing==="manta"){k.tri(cx-24,cy,cx+18,cy-12,cx+18,cy+12,p.c);k.tri(cx+18,cy-12,cx+30,cy-2,cx+18,cy,p.c);k.tri(cx+18,cy+12,cx+30,cy+2,cx+18,cy,p.c);k.cir(cx+26,cy-6,3,p.c);k.cir(cx+26,cy+6,3,p.c)}
+ else{k.ell(cx,cy,26,13,p.c);k.tri(cx-24,cy,cx,cy-14,cx,cy+14,p.c)}
+ if(p.belly)k.ell(cx+4,cy+3,14,5,p.belly);
+ if(p.pat&&p.pat.t==="spots"){var r=rnd(p.id||"ray");for(var j=0;j<10;j++)k.cir(cx-14+r()*30,cy-8+r()*16,1,p.pat.c)}
+ k.ln(cx-24,cy,cx-40,cy+2,p.c,2);k.ln(cx-40,cy+2,cx-52,cy+7,p.c,1.4);
+ k.eye(cx+10,cy-4,1.5);if(p.wing!=="manta")k.eye(cx+4,cy-4,1.5);
+},
+turtle:function(k,p){var cx=38,cy=28;
+ k.ell(cx,cy+4,17,9,p.rim||"#3c5c26");
+ k.ell(cx,cy+2,16,10,p.shell);
+ k.ln(cx-10,cy-4,cx+10,cy+8,p.rim||"#3c5c26",1.4);k.ln(cx+2,cy-6,cx-2,cy+10,p.rim||"#3c5c26",1.4);k.ln(cx-8,cy+6,cx+8,cy-4,p.rim||"#3c5c26",1.4);
+ k.tri(cx+12,cy-2,cx+24,cy+2,cx+12,cy+6,p.skin);
+ k.cir(cx+24,cy+1,4,p.skin);k.eye(cx+25,cy,1.4);
+ k.tri(cx+6,cy+6,cx+16,cy+14,cx+2,cy+12,p.skin);k.tri(cx-8,cy+6,cx-16,cy+13,cx-12,cy+4,p.skin);
+ k.tri(cx-16,cy,cx-20,cy+3,cx-15,cy+4,p.skin);
+},
+jelly:function(k,p){var cx=40,cy=22;
+ k.g.globalAlpha=.85;k.cir(cx,cy,13,p.c);k.g.globalAlpha=1;
+ k.cir(cx,cy+4,12,p.c);k.px(cx-12,cy+4,24,3,p.c);
+ k.g.globalAlpha=.5;k.cir(cx-3,cy-2,7,"#ffffff");k.g.globalAlpha=1;
+ if(p.glow)k.cir(cx,cy,4,"#e8feff");
+ for(var i=0;i<5;i++){var x=cx-9+i*4.5,wob=(i%2?2:-2);k.ln(x,cy+7,x+wob,cy+18,p.c,1.4);k.ln(x+wob,cy+18,x-wob,cy+28,p.c,1.2)}
+ k.ln(cx-4,cy+7,cx-2,cy+24,"#ffffff88",1);k.ln(cx+4,cy+7,cx+6,cy+24,"#ffffff88",1);
+},
+octopus:function(k,p){var cx=40,cy=20;
+ for(var i=0;i<8;i++){var a=-.5+i*.42,x1=cx+Math.sin(a)*7,y1=cy+9,x2=cx+Math.sin(a)*16+(i%2?5:-5),y2=cy+26+((i*7)%6),x3=x2+(i%2?6:-6),y3=y2+8;
+  k.ln(x1,y1,x2,y2,p.dark,3);k.ln(x2,y2,x3,y3,p.c,2.2)}
+ k.ell(cx,cy,11,p.ears?12:10,p.c);
+ if(p.ears){k.tri(cx-11,cy-4,cx-18,cy-8,cx-11,cy+2,p.c);k.tri(cx+11,cy-4,cx+18,cy-8,cx+11,cy+2,p.c)}
+ k.cir(cx-4,cy-2,2.4,"#fff");k.cir(cx+4,cy-2,2.4,"#fff");k.cir(cx-4,cy-2,1.2,"#101024");k.cir(cx+4,cy-2,1.2,"#101024");
+ k.cir(cx-6,cy+5,1,p.dark);k.cir(cx+6,cy+6,1,p.dark);k.cir(cx,cy+7,1,p.dark);
+},
+squid:function(k,p){var cx=40,cy=18,L=p.len==="giant"?1.25:1;
+ k.tri(cx-7*L,cy-12*L,cx+7*L,cy-12*L,cx,cy-20*L,p.c);
+ k.ell(cx,cy,7*L,12*L,p.c);
+ if(p.cloak){k.tri(cx-7*L,cy+2,cx-13*L,cy+16*L,cx,cy+10*L,p.dark||"#3a1a4a");k.tri(cx+7*L,cy+2,cx+13*L,cy+16*L,cx,cy+10*L,p.dark||"#3a1a4a")}
+ for(var i=0;i<6;i++){k.ln(cx-5*L+i*2*L,cy+10*L,cx-8*L+i*3*L,cy+(20+(i%3)*4)*L,p.c,1.6)}
+ k.ln(cx-2,cy+10*L,cx-6,cy+30*L,p.c,1.4);k.ln(cx+2,cy+10*L,cx+6,cy+30*L,p.c,1.4);
+ k.tri(cx-6,cy+30*L,cx-9,cy+33*L,cx-5,cy+33*L,p.c);k.tri(cx+6,cy+30*L,cx+5,cy+33*L,cx+9,cy+33*L,p.c);
+ k.cir(cx-3.4*L,cy+2,2.6*L,"#fff");k.cir(cx+3.4*L,cy+2,2.6*L,"#fff");k.cir(cx-3.4*L,cy+2,1.4,"#101024");k.cir(cx+3.4*L,cy+2,1.4,"#101024");
+},
+crab:function(k,p){var cx=40,cy=30;
+ for(var s=-1;s<=1;s+=2){for(var i=0;i<3;i++){var y=cy-2+i*4;k.ln(cx+s*10,y,cx+s*18,y+3,p.c,1.4);k.ln(cx+s*18,y+3,cx+s*22,y+8,p.c,1.2)}}
+ k.ell(cx,cy,11,7,p.c);
+ if(p.shell){k.cir(cx,cy-4,9,"#8a6a4a");k.cir(cx,cy-4,6,"#a8865e");k.cir(cx-1,cy-4,3,"#8a6a4a")}
+ if(p.hairy){var r=rnd("yeti");for(var h=0;h<24;h++)k.px(cx-10+r()*20,cy-6+r()*10,1,1,"#ffffff99")}
+ k.ln(cx-8,cy-4,cx-16,cy-12,p.c,2);k.ln(cx+8,cy-4,cx+16,cy-12,p.c,2);
+ k.cir(cx-18,cy-14,3.4,p.c);k.cir(cx+18,cy-14,3.4,p.c);
+ k.tri(cx-20,cy-16,cx-23,cy-20,cx-17,cy-18,p.c);k.tri(cx+20,cy-16,cx+23,cy-20,cx+17,cy-18,p.c);
+ k.ln(cx-3,cy-6,cx-4,cy-11,p.c,1.2);k.ln(cx+3,cy-6,cx+4,cy-11,p.c,1.2);
+ k.cir(cx-4,cy-12,1.6,"#101024");k.cir(cx+4,cy-12,1.6,"#101024");
+},
+shrimp:function(k,p){
+ for(var i=0;i<7;i++){var a=.4+i*.42,x=44-Math.cos(a)*22,y=18+Math.sin(a)*22;k.cir(x,y,4.6-i*.3,p.c)}
+ k.tri(44-Math.cos(3.1)*22,18+Math.sin(3.1)*22,18,34,26,26,p.c);
+ k.ln(46,16,58,8,p.c,1);k.ln(46,18,60,14,p.c,1);
+ k.eye(44,14,1.4);
+ k.ln(34,30,34,36,p.c,1);k.ln(38,32,38,38,p.c,1);
+},
+star:function(k,p){var cx=40,cy=30,n=p.arms||5;
+ for(var i=0;i<n;i++){var a=-Math.PI/2+i*2*Math.PI/n,x2=cx+Math.cos(a)*16,y2=cy+Math.sin(a)*16,b=.45;
+  k.tri(cx+Math.cos(a-b)*6,cy+Math.sin(a-b)*6,cx+Math.cos(a+b)*6,cy+Math.sin(a+b)*6,x2,y2,p.c)}
+ k.cir(cx,cy,7,p.c);
+ var r=rnd(p.id||"st");for(var d=0;d<8;d++)k.cir(cx-5+r()*10,cy-5+r()*10,1,"#ffffff66");
+}
+};
+</script>
+<script>
+"use strict";
+Object.assign(PLANS,{
+whale:function(k,p){var cx=36,cy=28,rx=24,ry=10;
+ k.tri(cx-rx+2,cy,cx-rx-10,cy-7,cx-rx-8,cy+2,p.c);
+ k.tri(cx-rx+2,cy,cx-rx-10,cy+7,cx-rx-8,cy-2,p.c);
+ k.ell(cx,cy,rx,ry,p.c);
+ k.ell(cx+rx-4,cy,10,9,p.c);
+ if(p.belly)k.ell(cx+6,cy+ry*.4,rx*.7,ry*.5,p.belly);
+ if(p.orca)k.tri(cx-2,cy-ry,cx+3,cy-ry-9,cx+8,cy-ry,p.c);
+ else k.tri(cx-rx+6,cy-ry,cx-rx+11,cy-ry-3,cx-rx+15,cy-ry,p.c);
+ if(p.orca){k.cir(cx+rx,cy-4,2.6,"#fff");k.ell(cx-8,cy-ry+2,5,2.6,"#fff")}
+ if(p.fins==="long"){k.tri(cx+6,cy+4,cx-2,cy+18,cx+13,cy+8,"#e8f0f2");for(var gl=0;gl<3;gl++)k.ln(cx+rx-8,cy+3+gl*2,cx+4,cy+5+gl*2,"#22303a",1)}
+ else k.tri(cx+4,cy+5,cx-2,cy+12,cx+10,cy+9,p.c);
+ if(p.tusk)k.ln(cx+rx+5,cy-3,cx+rx+20,cy-7,"#f2ecd8",1.8);
+ if(p.pat&&p.pat.t==="spots"){var r=rnd(p.id||"wh");for(var j=0;j<12;j++)k.cir(cx-18+r()*34,cy-7+r()*12,1,p.pat.c)}
+ k.eye(cx+rx+1,cy-3,1.5);
+ if(!p.orca)k.ln(cx+rx-6,cy+3,cx+rx+4,cy+5,"#0a0a12",1);
+},
+dolphin:function(k,p){var cx=38,cy=27,rx=22,ry=7;
+ k.tri(cx-rx+4,cy,cx-rx-7,cy-6,cx-rx-5,cy,p.c);k.tri(cx-rx+4,cy,cx-rx-7,cy+6,cx-rx-5,cy,p.c);
+ k.ell(cx,cy,rx,ry,p.c);
+ k.px(cx+rx-2,cy-2,8,3,p.c);
+ if(p.belly)k.ell(cx+4,cy+3,rx*.7,ry*.5,p.belly);
+ k.tri(cx-2,cy-ry,cx+3,cy-ry-6,cx+7,cy-ry,p.c);
+ k.tri(cx+2,cy+4,cx-3,cy+10,cx+8,cy+8,p.c);
+ k.eye(cx+rx-1,cy-3,1.6);
+},
+seal:function(k,p){var cx=36,cy=30;
+ k.ell(cx,cy,20,8,p.c);
+ k.tri(cx-18,cy-4,cx-28,cy-8,cx-20,cy+2,p.c);k.tri(cx-18,cy+4,cx-28,cy+8,cx-20,cy,p.c);
+ k.cir(cx+22,cy-6,p.head==="big"?7:5.6,p.c);
+ k.tri(cx+6,cy+4,cx+14,cy+12,cx+2,cy+8,p.c);
+ if(p.pat&&p.pat.t==="spots"){var r=rnd(p.id||"se");for(var j=0;j<10;j++)k.cir(cx-14+r()*30,cy-6+r()*12,1,p.pat.c)}
+ k.eye(cx+24,cy-8,1.5);
+ k.px(cx+27,cy-4,2,1.4,"#101024");
+ k.ln(cx+28,cy-2,cx+31,cy-3,"#ffffffaa",.8);k.ln(cx+28,cy-1,cx+31,cy+1,"#ffffffaa",.8);
+},
+penguin:function(k,p){var cx=40,cy=28;
+ k.ell(cx,cy,9,14,"#1a2030");
+ k.cir(cx,cy-13,6,"#1a2030");
+ k.ell(cx+1,cy+2,5.6,9,"#f4fbff");
+ if(p.patch){k.px(cx-6,cy-15,3,5,p.patch);k.px(cx+4,cy-15,3,5,p.patch)}
+ k.tri(cx+3,cy-13,cx+9,cy-11,cx+3,cy-10,"#ff9a3a");
+ if(p.ring)k.cir(cx+2,cy-14,2.6,"#fff");
+ k.eye(cx+2,cy-14,1.4);
+ k.tri(cx-9,cy-8,cx-13,cy+6,cx-7,cy+2,"#141a28");k.tri(cx+9,cy-8,cx+12,cy+6,cx+7,cy+2,"#141a28");
+ k.px(cx-4,cy+14,3,2,"#ff9a3a");k.px(cx+2,cy+14,3,2,"#ff9a3a");
+},
+otter:function(k,p){var cx=38,cy=30;
+ k.tri(cx-14,cy+2,cx-30,cy+6,cx-14,cy-4,"#6a4a2a");
+ k.ell(cx,cy,17,8,"#7a5a36");
+ k.ell(cx+1,cy-1,14,5.6,"#c9a878");
+ k.cir(cx+17,cy-5,6,"#7a5a36");
+ k.cir(cx+14,cy-10,1.8,"#6a4a2a");k.cir(cx+20,cy-10,1.8,"#6a4a2a");
+ k.cir(cx+20,cy-4,2.6,"#e8d0b0");k.px(cx+20,cy-5,1.6,1.2,"#101024");
+ k.eye(cx+15,cy-6,1.3);k.eye(cx+21,cy-6,1.3);
+ k.ln(cx+6,cy-4,cx+9,cy-9,"#6a4a2a",2);k.ln(cx+10,cy-4,cx+11,cy-9,"#6a4a2a",2);
+ k.cir(cx+10,cy-11,2.6,"#8a8a92");
+ k.tri(cx-6,cy+5,cx-2,cy+11,cx-10,cy+9,"#6a4a2a");
+},
+angel:function(k,p){var cx=40,cy=24;
+ k.g.globalAlpha=.8;
+ k.tri(cx-4,cy-2,cx-16,cy-10,cx-6,cy+4,p.c);k.tri(cx+4,cy-2,cx+16,cy-10,cx+6,cy+4,p.c);
+ k.ell(cx,cy,5,8,p.c);
+ k.g.globalAlpha=1;
+ k.cir(cx,cy-2,3,"#e06838");
+ k.cir(cx,cy-9,3.4,p.c);k.eye(cx-1,cy-10,1);k.eye(cx+1,cy-10,1);
+ k.ln(cx,cy+8,cx-2,cy+16,p.c,1.4);k.ln(cx,cy+8,cx+2,cy+16,p.c,1.4);
+},
+coral:function(k,p){var bx=40,by=52;
+ function br(x,y,a,len,w,depth){var x2=x+Math.cos(a)*len,y2=y+Math.sin(a)*len;
+  k.ln(x,y,x2,y2,p.c,w);
+  if(depth>0){br(x2,y2,a-.5,len*.62,w*.72,depth-1);br(x2,y2,a+.42,len*.62,w*.72,depth-1);
+  if(depth===2)br(x2,y2,a+.05,len*.55,w*.7,depth-1)}else k.cir(x2,y2,w*.9,p.tip||p.c)}
+ br(bx,by,-Math.PI/2,15,5,3);br(bx-8,by,-Math.PI/2-.25,12,4.4,2);br(bx+8,by,-Math.PI/2+.25,12,4.4,2);
+},
+anemone:function(k,p){var cx=40,by=50;
+ k.px(cx-9,by-14,18,14,p.dark||"#5a3a8a");
+ k.ell(cx,by-14,9,4,p.c);
+ for(var i=0;i<14;i++){var a=-Math.PI+i*(Math.PI/13),x1=cx+Math.cos(a)*9,y1=by-14+Math.sin(a)*3,x2=cx+Math.cos(a)*15,y2=y1-10-((i*5)%5);
+  k.ln(x1,y1,x2,y2,p.c,1.8);k.cir(x2,y2,1.5,p.tip||p.c)}
+},
+kelp:function(k,p){for(var s=0;s<4;s++){var x=20+s*14,h=34+((s*13)%14),y=54;
+ k.ln(x,y,x+(s%2?4:-4),y-h,"#2a6a3a",2);
+ for(var b=0;b<4;b++){var by2=y-h*(b+1)/4.4;k.ell(x+(s%2?4:-4)*(b+1)/4.4+(b%2?5:-5),by2,3,7,s%2?"#3fae5c":"#2f8a4a");k.cir(x+(s%2?4:-4)*(b+1)/4.4,by2+2,1.6,"#8fce6a")}}},
+grass:function(k,p){for(var i=0;i<9;i++){var x=16+i*6,h=18+((i*11)%16),bend=(i%3-1)*6;
+ k.tri(x,54,x+3,54,x+1+bend,54-h,i%2?p.c:"#2f8a4a")}},
+urchin:function(k,p){var cx=40,cy=34;
+ for(var i=0;i<18;i++){var a=i*Math.PI/9,k2=.8+((i*7)%5)/10;k.ln(cx,cy,cx+Math.cos(a)*13*k2,cy+Math.sin(a)*13*k2,p.c,1.2)}
+ k.cir(cx,cy,7,p.c);k.cir(cx-2,cy-2,2,"#2a1a3a");
+},
+tubeworm:function(k,p){var cx=40,by=52;
+ k.px(cx-4,by-22,8,22,"#e8e4da");k.px(cx-4,by-22,8,2,"#c8c4ba");
+ k.px(cx-4,by-14,8,1,"#c8c4ba");k.px(cx-4,by-7,8,1,"#c8c4ba");
+ for(var i=0;i<9;i++){var a=-Math.PI+i*Math.PI/8,x2=cx+Math.cos(a)*9,y2=by-24+Math.sin(a)*7;k.ln(cx,by-22,x2,y2,"#e83a4a",1.8);k.cir(x2,y2,1.5,"#ff6a76")}
+},
+krill:function(k,p){k.g.globalAlpha=.9;
+ k.ell(36,26,10,4,"#f2c9a8");k.cir(46,25,3.6,"#f2c9a8");
+ k.g.globalAlpha=1;
+ k.tri(26,26,18,20,20,28,"#f2c9a8");k.tri(26,26,18,32,20,25,"#f2c9a8");
+ k.eye(47,23,1.5);
+ k.ln(48,22,58,14,"#f2c9a8",.9);k.ln(48,24,58,20,"#f2c9a8",.9);
+ for(var i=0;i<4;i++)k.ln(32+i*4,29,32+i*4,33,"#f2c9a8",.8);
+ k.cir(34,26,1.2,"#c96a5a");
+},
+manowar:function(k,p){var cx=40,cy=14;
+ k.g.globalAlpha=.85;k.ell(cx,cy,10,7,p.c);k.tri(cx-10,cy+2,cx+10,cy+2,cx,cy+12,p.c);k.g.globalAlpha=1;
+ k.cir(cx+3,cy-2,3,"#cfe4ff");
+ var cols=["#7a9ad8","#9ab8e8","#6a8ac8"];
+ for(var i=0;i<6;i++){var x=cx-8+i*3.2,w=(i%2?3:-3);k.ln(x,cy+10,x+w,cy+26,cols[i%3],1.1);k.ln(x+w,cy+26,x-w,cy+42,cols[i%3],.9)}
+},
+siphon:function(k,p){var x0=30,y0=8;
+ for(var i=0;i<7;i++){var y=y0+i*5,x=x0+Math.sin(i*.9)*4;
+  k.ell(x,y,3,2.2,p.c);k.cir(x,y,1,"#cfe4ff");
+  if(i)k.ln(x0+Math.sin((i-1)*.9)*4,y0+(i-1)*5,x,y,"#9ab8e8",.8)}
+ k.ln(x0+Math.sin(6*.9)*4,y0+30,x0-2,52,p.c,1);
+ k.ln(x0+2,y0+30,x0+8,50,p.c,.8);
+},
+seapig:function(k,p){var cx=38,cy=32;
+ k.ell(cx,cy,16,8,"#d8c4b0");
+ k.cir(cx-4,cy-6,2,"#c0a890");k.cir(cx+4,cy-6,2,"#c0a890");
+ for(var i=0;i<4;i++){k.ln(cx-10+i*7,cy+7,cx-10+i*7,cy+12,"#c0a890",1.6)}
+ k.eye(cx+10,cy-2,1.2);
+},
+xeno:function(k,p){var r=rnd("xeno");
+ for(var i=0;i<9;i++)k.cir(26+r()*28,30+r()*10,4+r()*3,i%2?"#c8b89a":"#b0a288");
+ for(var j=0;j<14;j++)k.px(24+r()*32,28+r()*12,1.5,1.5,"#e0d4b8");
+},
+bird:function(k,p){var cx=40,cy=24;
+ k.ell(cx,cy,10,4,p.c);
+ k.cir(cx+11,cy-2,3,p.c);
+ k.tri(cx+13,cy-2,cx+18,cy-1,cx+13,cy,"#ffd23f");
+ k.tri(cx-2,cy-2,cx+6,cy-16,cx+10,cy-2,p.c);
+ k.tri(cx-2,cy+2,cx+4,cy+12,cx+8,cy+2,p.c);
+ k.tri(cx-10,cy,cx-16,cy-2,cx-10,cy+2,p.c);
+ k.eye(cx+11,cy-3,1.1);
+},
+phyto:function(k,p){var r=rnd("phy");
+ for(var i=0;i<16;i++){var x=12+r()*56,y=12+r()*32,c=i%3?"#5fd068":"#3fae5c";
+  if(i%4===0){k.px(x-2,y,5,1.6,c);k.px(x,y-2,1.6,5,c)}else if(i%4===1){k.cir(x,y,2,c);k.cir(x,y,1,"#a8f0ae")}else k.cir(x,y,1.4,c)}
+},
+worm:function(k,p){k.px(30,34,20,18,"#c8c4ba");k.px(30,40,20,1,"#a8a49a");k.px(30,46,20,1,"#a8a49a");
+ for(var i=0;i<8;i++){var x=32+i*2.2;k.cir(x,30-i*.4,3,"#d8d0c8")}
+ k.cir(48,26,3.4,"#8a4a5a");
+ for(var j=0;j<10;j++){var a=j*.63;k.ln(48,26,48+Math.cos(a)*5,26+Math.sin(a)*5,"#e8e0e8",.8)}
+},
+blob:function(k,p){var cx=40,cy=30;
+ k.ell(cx,cy,18,11,"#c9b8a8");
+ k.cir(cx+10,cy-4,7,"#c9b8a8");
+ k.cir(cx+12,cy-3,4,"#b8a090");
+ k.tri(cx+8,cy+2,cx+16,cy+3,cx+12,cy+6,"#a89080");
+ k.eye(cx+8,cy-6,1.5);k.eye(cx+15,cy-6,1.5);
+ k.px(cx+11,cy+1,3,1.6,"#8a6a80");
+ k.ln(cx-14,cy-4,cx-20,cy-8,"#c9b8a8",2);
+}
+});
+/* sprite cache */
+var SPR={};
+function spr(sp,dark){
+ var key=sp.id+(dark?"d":"");
+ if(SPR[key])return SPR[key];
+ var c=mkCan(SW,SH),g=c.getContext("2d");
+ var plan=PLANS[sp.plan]||PLANS.fish;
+ var p={};for(var k2 in (sp.p||{}))p[k2]=sp.p[k2];p.id=sp.id;
+ plan(kit(g),p);
+ if(dark){g.globalCompositeOperation="source-atop";g.fillStyle="#123043";g.fillRect(0,0,SW,SH);g.globalCompositeOperation="source-over"}
+ SPR[key]=c;return c;
+}
+function drawSprite(host,sp,opt){
+ opt=opt||{};
+ var cv=mkCan(SW,SH);cv.className="pix";
+ var g=cv.getContext("2d");g.imageSmoothingEnabled=false;
+ g.drawImage(spr(sp,opt.dark),0,0);
+ cv.style.width=opt.w||"100%";cv.style.height="auto";cv.style.display="block";
+ host.appendChild(cv);return cv;
+}
+</script>
+<script>
+"use strict";
+/* ---------- data ---------- */
+var CATS={fish:"Fish",mammal:"Marine mammals",reptile:"Reptiles",bird:"Seabirds",invert:"Invertebrates",coral:"Corals & anemones",plant:"Plants & algae"};
+function mksp(id,n,sci,cat,z,rar,size,depth,diet,fact,plan,p){return{id:id,n:n,sci:sci,cat:cat,z:z,rar:rar,size:size,depth:depth,diet:diet,fact:fact,plan:plan,p:p||{}}}
+var SP=[
+mksp("clownfish","Clownfish","Amphiprion ocellaris","fish",0,1,"length up to 11 cm","1-15 m","Plankton and algae","Lives safely among stinging anemone tentacles, protected by a special mucus coat.","fish",{len:30,h:16,c:"#ff7a1a",belly:"#ffb066",fin:"#e05e00",tailc:"#ff7a1a",pat:{t:"stripes",c:"#ffffff",n:3,bd:"#16161e"}}),
+mksp("bluetang","Blue tang","Paracanthurus hepatus","fish",0,1,"length up to 31 cm","2-40 m","Plankton and algae","A blue tang can turn a deeper blue when it feels threatened, and hides in coral at night.","fish",{len:34,h:20,c:"#2e6bff",fin:"#123a9e",tailc:"#ffd23f",pat:{t:"stripes",c:"#123a9e",n:1}}),
+mksp("greenturtle","Green sea turtle","Chelonia mydas","reptile",0,1,"length 90-120 cm","coastal shallows","Seagrass and algae","Green turtles are named for the green fat under their shell, not their colour.","turtle",{shell:"#5d8a3c",skin:"#8fbf6f",rim:"#3c5c26"}),
+mksp("staghorn","Staghorn coral","Acropora cervicornis","coral",0,1,"colonies over 2 m wide","shallow, sunny reefs","Sunlight, via algae partners","Staghorn coral branches like antlers and can grow 10 cm in a year.","coral",{c:"#c9a86a",tip:"#efe0b8"}),
+mksp("anemone","Sea anemone","Heteractis magnifica","coral",0,1,"diameter up to 1 m","1-50 m","Small fish and shrimp","An anemone is an animal, not a plant - it catches food with stinging tentacles.","anemone",{c:"#3fae8a",tip:"#8fe0c8",dark:"#2a7a5e"}),
+mksp("angelfish","Emperor angelfish","Pomacanthus imperator","fish",0,2,"length up to 38 cm","1-105 m","Sponges and algae","Young angelfish wear blue rings and adults wear yellow stripes, like changing clothes as they grow.","fish",{len:30,h:24,c:"#2456c8",belly:"#ffd23f",fin:"#16265e",tailc:"#ffd23f",pat:{t:"stripes",c:"#ffd23f",n:5}}),
+mksp("moray","Moray eel","Gymnothorax javanicus","fish",0,2,"length up to 3 m","1-50 m","Fish, shrimps and crabs","Morays have a second set of jaws in their throat that pulls food in.","eel",{c:"#7a9a4a",belly:"#c9d68a"}),
+mksp("hermit","Hermit crab","Dardanus megistos","invert",0,1,"length 10-20 cm","3-15 m","Small creatures and scraps","A hermit crab borrows empty shells and moves house as it grows.","crab",{c:"#c86a3a",shell:1}),
+mksp("parrotfish","Parrotfish","Scarus frenatus","fish",0,1,"length up to 47 cm","shallow reefs","Algae scraped from coral","Parrotfish grind up coral and poo out fine sand. Some beaches are partly made of parrotfish poo.","fish",{len:36,h:16,c:"#3fbf9f",belly:"#8fe0c8",fin:"#1f7a6a",tailc:"#2e8fb8",pat:{t:"spots",c:"#ffd23f",n:6}}),
+mksp("seagrass","Seagrass","Posidonia oceanica","plant",0,1,"leaves up to 1.5 m","1-35 m","Sunlight","Seagrass meadows store carbon and hide baby fish like a nursery.","grass",{c:"#3fae5c"}),
+mksp("otter","Sea otter","Enhydra lutris","mammal",1,2,"length 1.0-1.4 m","nearshore shallows","Sea urchins, crabs and clams","Sea otters hold hands while they sleep so they do not drift apart.","otter",{}),
+mksp("kelp","Giant kelp","Macrocystis pyrifera","plant",1,1,"height up to 53 m","6-30 m","Sunlight","Giant kelp can grow up to 60 cm in a single day.","kelp",{}),
+mksp("garibaldi","Garibaldi","Hypsypops rubicundus","fish",1,1,"length up to 36 cm","rocky reefs","Sponges and small animals","This bright orange damselfish guards its patch of reef and chases away anything that comes too close.","fish",{len:30,h:20,c:"#ff8a1a",fin:"#d96a00",tailc:"#ff8a1a"}),
+mksp("leopardshark","Leopard shark","Triakis semifasciata","fish",1,2,"length 1.2-1.5 m, rarely 1.8","0-91 m","Crabs, clams and small fish","Leopard sharks slide over the sand in big schools, sucking up crabs and clams from the bottom.","shark",{len:56,h:14,c:"#9aa6ad",belly:"#e8f0f2",pat:{t:"spots",c:"#4a5a60"}}),
+mksp("urchin","Sea urchin","Strongylocentrotus purpuratus","invert",1,1,"diameter about 10 cm","0-90 m","Kelp and algae","A sea urchin's mouth sits on its underside and is called Aristotle's lantern.","urchin",{c:"#6a3aa0"}),
+mksp("batray","Bat ray","Myliobatis californica","fish",1,2,"wingspan up to 1.8 m","0-45 m","Clams and shrimp","Bat rays fly through the water by flapping their wide wings.","ray",{c:"#5a6a72",belly:"#dfe8ea"}),
+mksp("harborseal","Harbor seal","Phoca vitulina","mammal",1,1,"length up to 1.8 m","0-100 m","Fish and squid","A harbor seal can nap in the water with just its nose poking out.","seal",{c:"#8a97a0",pat:{t:"spots",c:"#5a666e"}}),
+mksp("gpoctopus","Giant Pacific octopus","Enteroctopus dofleini","invert",1,3,"arm span up to 4.9 m","shallows to at least 100 m","Crabs, clams and fish","This octopus has three hearts, blue blood, and can taste with its arms.","octopus",{c:"#c85a3a",dark:"#8a3a26"}),
+mksp("sunstar","Sunflower star","Pycnopodia helianthoides","invert",1,2,"arm span up to 1 m","0-100 m","Sea urchins","With up to 24 arms, it is one of the biggest sea stars.","star",{c:"#e0a03a",arms:13}),
+mksp("kelpperch","Kelp perch","Brachyistius frenatus","fish",1,1,"length up to 22 cm","0-30 m","Tiny animals on kelp","Kelp perch hide among kelp blades and give birth to live young.","fish",{len:28,h:12,c:"#b89a4a",belly:"#e0d0a0",fin:"#8a7030",tailc:"#b89a4a"}),
+mksp("humpback","Humpback whale","Megaptera novaeangliae","mammal",2,3,"length 14-17 m","usually 0-80 m","Krill and small fish","Humpback whales sing long songs that carry for kilometres across the ocean.","whale",{c:"#3a4a5a",belly:"#dfe8ea",fins:"long"}),
+mksp("dolphin","Bottlenose dolphin","Tursiops truncatus","mammal",2,1,"length 2.5-3.5 m","surface waters","Fish and squid","Dolphins call each other by name using special signature whistles.","dolphin",{c:"#5a7a9a",belly:"#cfe0ea"}),
+mksp("whaleshark","Whale shark","Rhincodon typus","fish",2,3,"length about 12 m","to 500 m most days","Plankton and tiny fish","The whale shark is the biggest fish on Earth, but eats some of the smallest food.","shark",{len:62,h:18,c:"#4a5a6a",belly:"#dfe8ea",pat:{t:"spots",c:"#e8f0f2"}}),
+mksp("manta","Manta ray","Mobula birostris","fish",2,3,"wingspan up to 7 m","sunlit surface water","Plankton","Mantas have the biggest brain of any fish and somersault while feeding.","ray",{c:"#22303a",belly:"#e8f0f2",wing:"manta"}),
+mksp("flyingfish","Flying fish","Cheilopogon sp.","fish",2,2,"length up to 35 cm","surface","Plankton","Flying fish can glide above the waves for more than 40 seconds.","fish",{len:26,h:10,c:"#4a8ac8",belly:"#dfe8ea",fin:"#2a5a8a",tailc:"#4a8ac8",wings:1}),
+mksp("leatherback","Leatherback turtle","Dermochelys coriacea","reptile",2,2,"length 1.2-2.4 m","0-1000 m","Jellyfish","Leatherbacks dive deeper than any other turtle, hunting jellyfish in cold dark water.","turtle",{shell:"#3a4a5a",skin:"#6a7a8a",rim:"#22303a"}),
+mksp("sunfish","Ocean sunfish","Mola mola","fish",2,3,"length at least 3.3 m","0-840 m","Jellyfish and siphonophores","The sunfish looks like a giant swimming head and is sometimes seen basking at the surface.","fish",{len:24,h:30,c:"#8a97a0",belly:"#dfe8ea",fin:"#5a666e",tailc:"#8a97a0",dorsal:8,tailL:2,tailH:4}),
+mksp("tuna","Yellowfin tuna","Thunnus albacares","fish",2,1,"length up to 2 m","0-250 m","Fish and squid","Tuna keep their bodies warmer than the water around them and can burst to nearly 50 km/h.","fish",{len:44,h:16,c:"#3a5a8a",belly:"#e8e0a0",fin:"#ffd23f",tailc:"#ffd23f"}),
+mksp("manowar","Portuguese man o' war","Physalia physalis","invert",2,2,"tentacles up to 30 m","surface","Small fish","It looks like one jellyfish but is a colony of many animals working as one.","manowar",{c:"#7a9ad8"}),
+mksp("phyto","Phytoplankton","Many species, not one","plant",2,1,"each cell smaller than a hair","sunlit water","Sunlight","Phytoplankton make about half of the oxygen we breathe.","phyto",{}),
+mksp("emperor","Emperor penguin","Aptenodytes forsteri","bird",3,2,"height 1.1-1.3 m","0-500 m","Fish, squid and krill","Emperor dads keep eggs warm on their feet through the Antarctic winter.","penguin",{patch:"#ffd23f"}),
+mksp("orca","Orca","Orcinus orca","mammal",3,3,"length 6-8 m (males)","0-300 m","Fish, seals and whales","Orcas are the ocean's top hunters, and each family speaks its own dialect.","whale",{c:"#14181e",belly:"#ffffff",orca:1}),
+mksp("narwhal","Narwhal","Monodon monoceros","mammal",3,3,"length 4-5 m","0-1500 m","Cod, squid and shrimp","The narwhal's tusk is one giant tooth that can grow 3 metres long.","whale",{c:"#9fb6c9",belly:"#e8f0f2",tusk:1,pat:{t:"spots",c:"#6a8a9a"}}),
+mksp("leopardseal","Leopard seal","Hydrurga leptonyx","mammal",3,2,"length about 3 m, big females 3.5","0-200 m","Penguins, fish and krill","Leopard seals are powerful hunters with a big smile-like jaw.","seal",{c:"#6a7680",pat:{t:"spots",c:"#3a444c"},head:"big"}),
+mksp("weddell","Weddell seal","Leptonychotes weddellii","mammal",3,1,"length about 3 m","0-720 m","Fish","Weddell seals keep breathing holes open in the ice by sawing it with their teeth.","seal",{c:"#8a94a0",pat:{t:"spots",c:"#c8d0d8"}}),
+mksp("adelie","Adelie penguin","Pygoscelis adeliae","bird",3,1,"height about 70 cm","0-175 m","Krill and small fish","Adelie penguins build pebble nests, and they are always pinching stones from their neighbours.","penguin",{ring:1}),
+mksp("krill","Antarctic krill","Euphausia superba","invert",3,1,"length about 6 cm","0-300 m","Phytoplankton","Krill swarm in such huge numbers that the swarms can be seen from space.","krill",{}),
+mksp("polarcod","Polar cod","Boreogadus saida","fish",3,1,"length up to 40 cm","0-400 m","Plankton","Polar cod have natural antifreeze in their blood so they do not freeze.","fish",{len:30,h:10,c:"#c8d0d8",belly:"#eef4f6",fin:"#8a97a0",tailc:"#c8d0d8"}),
+mksp("seaangel","Sea angel","Clione limacina","invert",3,2,"length about 3 cm","0-500 m","Sea butterflies","A sea angel is a swimming sea slug that flaps through icy water like a tiny ghost.","angel",{c:"#bfe8f2"}),
+mksp("petrel","Southern giant petrel","Macronectes giganteus","bird",3,2,"as big as a small albatross","surface","Fish, squid and scraps","This big seabird can spit smelly stomach oil at attackers, even as a chick.","bird",{c:"#8a7a6a"}),
+mksp("anglerfish","Anglerfish","Melanocetus johnsonii","fish",4,3,"length up to 18 cm, males tiny","1000-4500 m","Fish and crustaceans","Only female anglerfish carry the famous glowing lure. Males are tiny.","fish",{len:24,h:16,c:"#3a3a4a",belly:"#5a5a6a",fin:"#22222e",tailc:"#3a3a4a",mouth:"big",eye:"big",lights:1}),
+mksp("giantsquid","Giant squid","Architeuthis dux","invert",4,3,"length up to 13 m","300-1000 m","Fish and other squid","The giant squid has eyes as big as dinner plates, the largest of any animal.","squid",{c:"#a04a3a",len:"giant"}),
+mksp("vampiresquid","Vampire squid","Vampyroteuthis infernalis","invert",4,3,"length up to 30 cm","600-900 m","Sinking flakes of food","It does not hunt. It eats drifting marine snow and glows blue when scared.","squid",{c:"#5a2a6a",cloak:1,dark:"#3a1a4a"}),
+mksp("lanternfish","Lanternfish","Myctophum sp.","fish",4,1,"length up to 8 cm","300-1500 m","Tiny plankton","Every night, billions of lanternfish swim up from the deep to feed near the surface.","fish",{len:22,h:8,c:"#5a7a9a",belly:"#cfe0ea",fin:"#3a5a6a",tailc:"#5a7a9a",lights:1,eye:"big"}),
+mksp("gulper","Gulper eel","Eurypharynx pelecanoides","fish",4,2,"length about 80 cm","500-3000 m","Small fish and shrimp","Its giant mouth works like a net, and the tip of its tail glows.","eel",{c:"#3a3a4a",belly:"#6a6a7a",gulper:1}),
+mksp("crystaljelly","Crystal jelly","Aequorea victoria","invert",4,2,"diameter about 3 cm","0-200 m","Soft plankton","This clear jelly makes the glowing protein GFP, which won a Nobel Prize.","jelly",{c:"#9fd8e8",glow:1}),
+mksp("dumbo","Dumbo octopus","Grimpoteuthis sp.","invert",4,3,"length 20-30 cm","1000-7000 m","Worms and small crustaceans","It flaps two ear-like fins to swim, like a little flying elephant of the deep.","octopus",{c:"#b8c8d8",dark:"#8a9aac",ears:1}),
+mksp("hatchetfish","Hatchetfish","Argyropelecus sp.","fish",4,1,"length up to 12 cm","200-1000 m","Tiny shrimp and plankton","Special lights on its belly match the light from above, hiding its shadow from hunters below.","fish",{len:16,h:12,c:"#c0ccd4",belly:"#e8f0f2",fin:"#8a97a0",tailc:"#c0ccd4",eye:"big",lights:1}),
+mksp("blobfish","Blobfish","Psychrolutes marcidus","fish",4,2,"length about 30 cm","600-1200 m","Small creatures on the seafloor","Deep down a blobfish looks like a normal fish. It only goes blobby when pulled up.","blob",{}),
+mksp("siphonophore","Siphonophore","Praya dubia","invert",4,3,"length up to 40 m","deep midwater","Fish and crustaceans","Longer than a blue whale, it is a living chain of thousands of tiny animals.","siphon",{c:"#7a9ad8"}),
+mksp("tubeworm","Giant tube worm","Riftia pachyptila","invert",5,3,"length up to 2 m","2500+ m","Made by bacteria inside it","It has no mouth and no stomach. Bacteria inside it turn vent chemicals into food.","tubeworm",{}),
+mksp("yeticrab","Yeti crab","Kiwa hirsuta","invert",5,3,"length about 15 cm","about 2,200 m","Bacteria growing on its furry arms","This nearly blind little crab eats bacteria that grow on its own furry claws.","crab",{c:"#e8e4da",hairy:1}),
+mksp("ventshrimp","Vent shrimp","Rimicaris exoculata","invert",5,2,"length 4-6 cm","up to 3600 m","Bacteria living on its body","Vent shrimp crowd around cracks blasting water far hotter than boiling, and they do not cook.","shrimp",{c:"#e0d8c8"}),
+mksp("pompeii","Pompeii worm","Alvinella pompejana","invert",5,3,"length up to 13 cm","2000-3000 m","Bacteria","Its tail rests in vent water as hot as 50C while its head sticks out into cool 22C water.","worm",{}),
+mksp("seapig","Sea pig","Scotoplanes sp.","invert",5,2,"length 10-15 cm","1000-6000 m","Food flakes in mud","Sea pigs walk across the abyss on little tube feet, like balloons with legs.","seapig",{}),
+mksp("tripodfish","Tripod fish","Bathypterois grallator","fish",5,2,"length about 35 cm","880-4720 m","Tiny crustaceans","It stands on three stiff fins like a tripod, waiting for food to drift past.","fish",{len:26,h:8,c:"#c9b8a0",belly:"#e8e0d0",fin:"#8a7a6a",tailc:"#c9b8a0",stilts:1}),
+mksp("cuskeel","Cusk eel","Spectrunculus grandis","fish",5,1,"length up to 1.3 m","2000-4800 m","Small bottom animals","One of the biggest fish living below 2000 metres, it slides through the mud looking for a meal.","eel",{c:"#d8d0c8",belly:"#f0ebe4"}),
+mksp("swallower","Black swallower","Chiasmodon niger","fish",5,3,"length up to 25 cm","700-2745 m","Fish and squid","It can swallow prey twice its own length, stretching its stomach like a balloon.","fish",{len:26,h:8,c:"#1c1c26",belly:"#3a3a4a",fin:"#101018",tailc:"#1c1c26",mouth:"big",eye:"big"}),
+mksp("xeno","Xenophyophore","Syringammina fragilissima","invert",5,2,"diameter up to 20 cm","deep sea floor","Unknown - still a mystery","It is one single giant cell, one of the biggest single-celled creatures known.","xeno",{}),
+mksp("grenadier","Grenadier","Coryphaenoides sp.","fish",5,1,"length 46-65 cm","2000-6000 m","Fish, crabs and squid","Grenadiers are among the most common big fish of the deep sea.","fish",{len:40,h:10,c:"#8a7a8a",belly:"#c0b8c8",fin:"#5a4a5a",tailc:"#8a7a8a",rattail:1})
+];
+var ZONES=[
+{id:"reef",n:"Sunlit Reef",d:"Warm, bright water full of colour.",top:"#1a8ac8",bot:"#0a4a7a",floor:"#c9b088"},
+{id:"kelp",n:"Kelp Forest",d:"Towering green kelp hides otters and sharks.",top:"#1a7a6a",bot:"#083a34",floor:"#8a9a7a"},
+{id:"blue",n:"Open Blue",d:"The endless blue highway of whales and tuna.",top:"#1a5ab8",bot:"#0a1e4a",floor:"#3a5a8a"},
+{id:"polar",n:"Polar Seas",d:"Icy water at the top and bottom of the world.",top:"#5a9ac8",bot:"#1a4a6a",floor:"#e8f0f4"},
+{id:"twilight",n:"Twilight Deep",d:"Dim blue light and glowing animals.",top:"#14204a",bot:"#060a20",floor:"#1a2440"},
+{id:"abyss",n:"Abyssal Vents",d:"Hot chimneys in total darkness.",top:"#0a0e24",bot:"#02030a",floor:"#2a2430"}
+];
+var SRC={
+clownfish:["Wiley Journal of Fish Biology","https://onlinelibrary.wiley.com/doi/full/10.1111/jfb.15772"],
+bluetang:["FishBase","https://www.fishbase.se/summary/Paracanthurus-hepatus.html"],
+greenturtle:["NOAA Fisheries","https://www.fisheries.noaa.gov/species/green-turtle/science"],
+staghorn:["U.S. Fish & Wildlife Service","https://www.fws.gov/species/staghorn-coral-acropora-cervicornis"],
+anemone:["Animal Diversity Web","https://animaldiversity.org/accounts/Heteractis_magnifica/"],
+angelfish:["Smithsonian STRI","https://biogeodb.stri.si.edu/caribbean/en/thefishes/species/5653"],
+moray:["Smithsonian STRI","https://biogeodb.stri.si.edu/sftep/en/thefishes/species/2506"],
+hermit:["Reef Guide","https://www.reefguide.org/indopac/whitespottedhermitcrab.html"],
+parrotfish:["Natural History Museum","https://www.nhm.ac.uk/discover/parrotfish-and-sand.html"],
+seagrass:["Wikipedia: Posidonia oceanica","https://en.wikipedia.org/wiki/Posidonia_oceanica"],
+otter:["Discover Magazine","https://www.discovermagazine.com/sea-otters-hold-hands-while-sleeping-and-they-even-cuddle-46115"],
+kelp:["Aquarium of the Pacific","https://www.aquariumofpacific.org/onlinelearningcenter/species/giant_kelp"],
+garibaldi:["Monterey Bay Aquarium","https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/garibaldi"],
+leopardshark:["Aquarium of the Pacific","https://www.aquariumofpacific.org/onlinelearningcenter/species/leopard_shark"],
+urchin:["Journal of Natural History","https://doi.org/10.1080/00222939500770111"],
+batray:["California Dept. of Fish and Wildlife","https://marinespecies.wildlife.ca.gov/bat-ray/false/"],
+harborseal:["Monterey Bay Aquarium","https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/harbor-seal"],
+gpoctopus:["Alaska Dept. of Fish and Game","https://www.adfg.alaska.gov/index.cfm?adfg=giantpacificoctopus.printerfriendly"],
+sunstar:["Monterey Bay Aquarium","https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/sunflower-star"],
+kelpperch:["Journal of Heredity (2023)","https://doi.org/10.1093/jhered/esad009"],
+humpback:["The Dolphin Institute","https://thedolphininstitute.org/our-work/projects/"],
+dolphin:["Aquatic Mammals journal","https://doi.org/10.1578/am.51.3.2025.262"],
+whaleshark:["Natural History Museum","https://www.nhm.ac.uk/discover/whale-sharks-worlds-biggest-shark.html"],
+manta:["Wikipedia: giant oceanic manta ray","https://en.wikipedia.org/wiki/Giant_oceanic_manta_ray"],
+flyingfish:["Guinness World Records","https://guinnessworldrecords.com/world-records/498196-longest-flight-by-a-flyingfish-duration"],
+leatherback:["U.S. Fish & Wildlife Service","https://www.fws.gov/species/leatherback-sea-turtle-dermochelys-coriacea"],
+sunfish:["Australian Museum","https://australian.museum/learn/animals/fishes/ocean-sunfish-mola-mola/"],
+tuna:["Monterey Bay Aquarium","https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/yellowfin-tuna"],
+manowar:["NOAA Ocean Service","https://oceanservice.noaa.gov/facts/portuguese-man-o-war.html"],
+phyto:["NOAA Ocean Service","https://oceanservice.noaa.gov/facts/ocean-oxygen.html/"],
+emperor:["Antarctic and Southern Ocean Coalition","https://www.asoc.org/learn/emperor-penguin/"],
+orca:["OrcaLab","https://orcalab.org/orcas/"],
+narwhal:["NOAA Ocean Explorer","https://archive.oceanexplorer.noaa.gov/explorations/06arctic/background/biology/biology.html"],
+leopardseal:["Australian Antarctic Program","https://www.antarctica.gov.au/about-antarctica/animals/seals/leopard-seal/"],
+weddell:["Australian Antarctic Program","https://www.antarctica.gov.au/about-antarctica/animals/seals/weddell-seal/"],
+adelie:["Australian Antarctic Program","https://www.antarctica.gov.au/about-antarctica/animals/penguins/adelie-penguin/"],
+krill:["Marine Stewardship Council","https://www.msc.org/species/antarctic-krill"],
+polarcod:["PNAS","https://www.pnas.org/doi/10.1073/pnas.94.8.3817"],
+seaangel:["Wikipedia: Clione limacina","https://en.wikipedia.org/wiki/Clione_limacina"],
+petrel:["NZ Birds Online","https://www.nzbirdsonline.org.nz/species/southern-giant-petrel"],
+anglerfish:["MBARI","https://dsg.mbari.org/dsg/view/concept/Melanocetus%20johnsonii"],
+giantsquid:["Guinness World Records","https://www.guinnessworldrecords.com/world-records/70673-largest-eye"],
+vampiresquid:["MBARI","https://www.mbari.org/animal/vampire-squid/"],
+lanternfish:["FishBase","https://www.fishbase.se/summary/Myctophum-nitidulum.html"],
+gulper:["Wikipedia: pelican eel","https://en.wikipedia.org/wiki/Eurypharynx_pelecanoides"],
+crystaljelly:["Nobel Prize press release (2008)","https://www.nobelprize.org/prizes/chemistry/2008/press-release/"],
+dumbo:["Natural History Museum","https://www.nhm.ac.uk/discover/what-is-a-dumbo-octopus.html"],
+hatchetfish:["Counterillumination study (PMC)","https://pmc.ncbi.nlm.nih.gov/articles/PMC7341941/"],
+blobfish:["National Geographic","https://www.nationalgeographic.com/animals/fish/facts/blobfish"],
+siphonophore:["Monterey Bay Aquarium","https://www.montereybayaquarium.org/animals-the-ocean/animals-a-to-z/giant-siphonophore"],
+tubeworm:["Current Biology","https://www.cell.com/current-biology/fulltext/S0960-9822(13)00074-2"],
+yeticrab:["Wikipedia: Kiwa hirsuta","https://en.wikipedia.org/wiki/Kiwa_hirsuta"],
+ventshrimp:["Wikipedia: Rimicaris exoculata","https://en.wikipedia.org/wiki/Rimicaris_exoculata"],
+pompeii:["MEPS: Thermotolerance and the Pompeii worms","https://doi.org/10.3354/meps208293"],
+seapig:["MBARI","https://www.mbari.org/animal/sea-pig/"],
+tripodfish:["FishBase","https://www.fishbase.org/summary/Bathypterois-grallator.html"],
+cuskeel:["Wikipedia: pudgy cusk-eel","https://en.wikipedia.org/wiki/Spectrunculus_grandis"],
+swallower:["Wikipedia: black swallower","https://en.wikipedia.org/wiki/Black_swallower"],
+xeno:["Wikipedia: Syringammina","https://en.wikipedia.org/wiki/Syringammina_fragilissima"],
+grenadier:["University of Washington","https://interactiveoceans.washington.edu/05/2023/rattail-fish/"]
+};
+var SRC2={
+clownfish:["Wikipedia: ocellaris clownfish","https://en.wikipedia.org/wiki/Ocellaris_clownfish"],
+parrotfish:["Wikipedia: Scarus frenatus","https://en.wikipedia.org/wiki/Scarus_frenatus"],
+otter:["Wikipedia: sea otter","https://en.wikipedia.org/wiki/Sea_otter"],
+kelpperch:["Wikipedia: kelp perch","https://en.wikipedia.org/wiki/Kelp_perch"],
+humpback:["Wikipedia: humpback whale","https://en.wikipedia.org/wiki/Humpback_whale"],
+dolphin:["Wikipedia: common bottlenose dolphin","https://en.wikipedia.org/wiki/Common_bottlenose_dolphin"],
+manowar:["Scientific Reports (2019)","https://www.nature.com/articles/s41598-019-51842-1"],
+emperor:["Wikipedia: emperor penguin","https://en.wikipedia.org/wiki/Emperor_penguin"],
+orca:["Wikipedia: orca","https://en.wikipedia.org/wiki/Killer_whale"],
+lanternfish:["Wikipedia: lanternfish","https://en.wikipedia.org/wiki/Lanternfish"],
+crystaljelly:["Wikipedia: Aequorea victoria","https://en.wikipedia.org/wiki/Aequorea_victoria"],
+hatchetfish:["Wikipedia: marine hatchetfish","https://en.wikipedia.org/wiki/Marine_hatchetfish"],
+pompeii:["Wikipedia: Alvinella pompejana","https://en.wikipedia.org/wiki/Alvinella_pompejana"],
+yeticrab:["PLOS ONE (farming evidence, related species K. puravida)","https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0026243"],
+tripodfish:["Wikipedia: tripod fish","https://en.wikipedia.org/wiki/Bathypterois_grallator"],
+moray:["Wikipedia: moray eel","https://en.wikipedia.org/wiki/Moray_eel"],
+hermit:["Wikipedia: Dardanus megistos","https://en.wikipedia.org/wiki/Dardanus_megistos"],
+urchin:["Wikipedia: purple sea urchin","https://en.wikipedia.org/wiki/Strongylocentrotus_purpuratus"],
+giantsquid:["Wikipedia: giant squid","https://en.wikipedia.org/wiki/Giant_squid"],
+polarcod:["FishBase","https://www.fishbase.se/summary/Boreogadus-saida.html"],
+flyingfish:[["Wikipedia: flying fish","https://en.wikipedia.org/wiki/Flying_fish"],["FishBase: Cheilopogon agoo","https://www.fishbase.se/summary/Cheilopogon-agoo.html"]]
+};
+function srcOf(sp){var x=SRC[sp.id];return x?x:["Field guide",""]}
+function zoneSp(z){return SP.filter(function(s){return s.z===z})}
+function spById(id){for(var i=0;i<SP.length;i++)if(SP[i].id===id)return SP[i];return null}
+function cardNum(sp){var zi=sp.z+1,arr=zoneSp(sp.z),ix=arr.indexOf(sp)+1;return "#0"+zi+"."+pad(ix)}
+function zoneUnlocked(z){if(z===0)return true;return (S.clears[ZONES[z-1].id]||0)>=3}
+var FLOOR_PLANS={coral:1,anemone:1,kelp:1,grass:1,urchin:1,tubeworm:1,xeno:1,seapig:1};
+var AIR_PLANS={bird:1,manowar:1,phyto:1};
+</script>
+<script>
+"use strict";
+/* ---------- icons (SVG, no emoji) ---------- */
+function svgI(path,color,size){return '<svg class="ico" viewBox="0 0 24 24" width="'+(size||18)+'" height="'+(size||18)+'"><g fill="'+color+'">'+path+'</g></svg>'}
+var IC={
+ star:'<path d="M12 1.5l3.1 6.9 7.4.7-5.5 4.9 1.6 7.2L12 17.6l-6.6 3.9 1.6-7.3L1.5 9.1l7.4-.7z"/>',
+ lock:'<path d="M7 10V7a5 5 0 0 1 10 0v3h1.5v11h-13V10zm2.5 0h5V7a2.5 2.5 0 0 0-5 0z"/>',
+ fish:'<path d="M2 12c4-5 10-5 14 0-4 5-10 5-14 0z"/><path d="M16 12l6-3.5v7z"/><circle cx="6.5" cy="11" r="1" fill="#081226"/>',
+ mammal:'<path d="M3 13c2-4 6-6 9-6s7 2 9 6c-2-1-4-1-5 0l-4 6-4-6c-1-1-3-1-5 0z"/>',
+ reptile:'<ellipse cx="12" cy="13" rx="7" ry="5"/><circle cx="20" cy="11" r="2.4"/><path d="M6 16l-3 3m15-3l3 3M8 9L5 6m11 3l3-3" stroke-width="2" stroke="#9fefff" fill="none"/>',
+ bird:'<path d="M2 15c4-7 8-7 10-4 2-3 6-3 10 4-4-2-6-2-8 0l-2 4-2-4c-2-2-4-2-8 0z"/>',
+ invert:'<circle cx="12" cy="8" r="4.5"/><path d="M8 11c-2 2-3 5-3 9m4-8c-1 3-1 5 0 8m3-8v8m3-8c1 3 1 5 0 8m4-8c2 2 3 5 3 9" stroke="#9fefff" stroke-width="1.6" fill="none"/>',
+ coral:'<path d="M11 22V10M11 14l-5-4m5 4l5-5M11 18l-6-2m13-1l-7 1M7 10V5m10 6V4" stroke="#9fefff" stroke-width="2" fill="none"/>',
+ plant:'<path d="M12 2c6 6 6 13 0 20-6-7-6-14 0-20z"/><path d="M12 6v13" stroke="#081226" stroke-width="1.4"/>',
+ air:'<path d="M12 3a7 7 0 0 1 7 7c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 7-7zm0 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>',
+ card:'<rect x="4" y="2" width="16" height="20" rx="2" fill="none" stroke="#9fefff" stroke-width="2"/><path d="M12 6l1.6 3.6 3.9.4-3 2.6.9 3.8L12 14.4l-3.4 2 .9-3.8-3-2.6 3.9-.4z"/>'
+};
+function catIcon(cat,size){return svgI(IC[cat]||IC.fish,"#9fefff",size)}
+function stars(n,size){var s="";for(var i=0;i<3;i++)s+='<svg viewBox="0 0 24 24" width="'+(size||12)+'" height="'+(size||12)+'"><path fill="'+(i<n?"#ffd23f":"#2a4a6a")+'" d="M12 1.5l3.1 6.9 7.4.7-5.5 4.9 1.6 7.2L12 17.6l-6.6 3.9 1.6-7.3L1.5 9.1l7.4-.7z"/></svg>';return '<span class="stars">'+s+'</span>'}
+/* ---------- navigation ---------- */
+var NAV=[];
+function go(name,arg,keep){if(!keep)NAV.push(name+":"+(arg==null?"":arg));render(name,arg)}
+function back(){NAV.pop();var cur=NAV[NAV.length-1]||"home:";var p=cur.split(":");render(p[0],p.slice(1).join(":")||null)}
+$("btnHub").onclick=function(){location.href="https://benrhamen.github.io/pixel-arcade/"};
+$("btnBack").onclick=function(){back()};
+function render(name,arg){
+ stopDive();
+ var scr=$("scr");scr.innerHTML="";
+ renderPlayer($("player"));
+ if(name==="home")scrHome(scr);
+ else if(name==="zones")scrZones(scr);
+ else if(name==="dive")scrDive(scr,+arg);
+ else if(name==="deck")scrDeck(scr,arg);
+ else if(name==="card")scrCard(scr,arg);
+ else if(name==="games")scrGames(scr);
+ else if(name==="quiz")scrQuiz(scr,arg);
+ else if(name==="mem")scrMem(scr,arg);
+ else if(name==="sort")scrSort(scr);
+ else if(name==="help")scrHelp(scr);
+ else scrHome(scr);
+ try{window.scrollTo(0,0)}catch(e){}
+}
+var PHOTO={"clownfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Clown_fish_in_the_Andaman_Coral_Reef.jpg/500px-Clown_fish_in_the_Andaman_Coral_Reef.jpg","a":"Ritiks","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Clown_fish_in_the_Andaman_Coral_Reef.jpg"},"bluetang":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Paletten-Doktorfisch_M%C3%BCnster.JPG/500px-Paletten-Doktorfisch_M%C3%BCnster.JPG","a":"DerHans04","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Paletten-Doktorfisch_M%C3%BCnster.JPG"},"greenturtle":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/Green_sea_turtle_%28Chelonia_mydas%29_Moorea.jpg/500px-Green_sea_turtle_%28Chelonia_mydas%29_Moorea.jpg","a":"Charles J. Sharp","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Green_sea_turtle_(Chelonia_mydas)_Moorea.jpg"},"staghorn":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Hertshoon.jpg/500px-Hertshoon.jpg","a":"Albert Kok at Dutch Wikipedia (Original text: albert kok)","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Hertshoon.jpg"},"anemone":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Amphiprion_perideraion_%28Pink_anemonefish%29_in_Heteractis_magnifica_%28Magnificent_sea_anemone%29.jpg/500px-Amphiprion_perideraion_%28Pink_anemonefish%29_in_Heteractis_magnifica_%28Magnificent_sea_anemone%29.jpg","a":"Nhobgood Nick Hobgood","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Amphiprion_perideraion_(Pink_anemonefish)_in_Heteractis_magnifica_(Magnificent_sea_anemone).jpg"},"angelfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/Emperor_Angelfish%2C_Western_form_-_Pomacanthus_imperator_1.jpg/500px-Emperor_Angelfish%2C_Western_form_-_Pomacanthus_imperator_1.jpg","a":"Francois Libert","l":"CC BY-SA 2.0","f":"https://commons.wikimedia.org/wiki/File:Emperor_Angelfish,_Western_form_-_Pomacanthus_imperator_1.jpg"},"moray":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Moray_eel_komodo.jpg/500px-Moray_eel_komodo.jpg","a":"Nhobgood Nick Hobgood","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Moray_eel_komodo.jpg"},"hermit":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Cangrejo_ermita%C3%B1o_%28Dardanus_megistos%29%2C_Anilao%2C_Filipinas%2C_2023-08-23%2C_DD_198.jpg/500px-Cangrejo_ermita%C3%B1o_%28Dardanus_megistos%29%2C_Anilao%2C_Filipinas%2C_2023-08-23%2C_DD_198.jpg","a":"Diego Delso","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Cangrejo_ermita%C3%B1o_(Dardanus_megistos),_Anilao,_Filipinas,_2023-08-23,_DD_198.jpg"},"parrotfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/Pez_loro_%28Scarus_frenatus%29%2C_Yeda%2C_Arabia_Saudita%2C_2025-05-19%2C_DD_26.jpg/500px-Pez_loro_%28Scarus_frenatus%29%2C_Yeda%2C_Arabia_Saudita%2C_2025-05-19%2C_DD_26.jpg","a":"Diego Delso","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Pez_loro_(Scarus_frenatus),_Yeda,_Arabia_Saudita,_2025-05-19,_DD_26.jpg"},"seagrass":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Posidonia_oceanica_%28L%29.jpg/500px-Posidonia_oceanica_%28L%29.jpg","a":"Fr\u00e9d\u00e9ric Ducarme","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Posidonia_oceanica_(L).jpg"},"otter":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg/500px-Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg","a":"Marshal Hedin from San Diego","l":"CC BY-SA 2.0","f":"https://commons.wikimedia.org/wiki/File:Sea_Otter_(Enhydra_lutris)_(25169790524)_crop.jpg"},"kelp":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Giantkelp2_300.jpg/500px-Giantkelp2_300.jpg","a":"Wikimedia Commons","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Giantkelp2_300.jpg"},"garibaldi":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/27/Hypsypops_rubicundus_adult.jpg/500px-Hypsypops_rubicundus_adult.jpg","a":"Stan Shebs","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Hypsypops_rubicundus_adult.jpg"},"leopardshark":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1e/Leopard_shark_in_kelp.jpg/500px-Leopard_shark_in_kelp.jpg","a":"Mfield, Matthew Field, www.photography.mattfield.com","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Leopard_shark_in_kelp.jpg"},"urchin":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e2/Urchin_%289398869414%29.jpg/500px-Urchin_%289398869414%29.jpg","a":"Ed Bierman from CA, usa","l":"CC BY 2.0","f":"https://commons.wikimedia.org/wiki/File:Urchin_(9398869414).jpg"},"batray":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Myliobatis_californica_monterey_bay_aquarium.jpg/500px-Myliobatis_californica_monterey_bay_aquarium.jpg","a":"Martin Holst Friborg Pedersen from Copenhagen S, Denmark","l":"CC BY 2.0","f":"https://commons.wikimedia.org/wiki/File:Myliobatis_californica_monterey_bay_aquarium.jpg"},"harborseal":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Common_seal_%28Phoca_vitulina%29_2.jpg/500px-Common_seal_%28Phoca_vitulina%29_2.jpg","a":"Charles J. Sharp","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Common_seal_(Phoca_vitulina)_2.jpg"},"gpoctopus":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0b/Enteroctopus_dolfeini.jpg/500px-Enteroctopus_dolfeini.jpg","a":"NOAA/R. N. Lea [1]","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Enteroctopus_dolfeini.jpg"},"sunstar":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Pycnopodia_helianthoides_SLO_CA.jpg/500px-Pycnopodia_helianthoides_SLO_CA.jpg","a":"Jerry Kirkhart from Los Osos, Calif.","l":"CC BY 2.0","f":"https://commons.wikimedia.org/wiki/File:Pycnopodia_helianthoides_SLO_CA.jpg"},"kelpperch":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Kelp_perchNAB_3.17_%28cropped%29.jpg/500px-Kelp_perchNAB_3.17_%28cropped%29.jpg","a":"lwolfartist","l":"CC BY 2.0","f":"https://commons.wikimedia.org/wiki/File:Kelp_perchNAB_3.17_(cropped).jpg"},"humpback":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Humpback_whale_breaching_off_Cabo_San_Lucas.jpg/500px-Humpback_whale_breaching_off_Cabo_San_Lucas.jpg","a":"Juan Cruzado Cort\u00e9s","l":"CC BY 4.0","f":"https://commons.wikimedia.org/wiki/File:Humpback_whale_breaching_off_Cabo_San_Lucas.jpg"},"dolphin":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Tursiops_truncatus_01-cropped.jpg/500px-Tursiops_truncatus_01-cropped.jpg","a":"NASA","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Tursiops_truncatus_01-cropped.jpg"},"whaleshark":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Similan_Dive_Center_-_great_whale_shark.jpg/500px-Similan_Dive_Center_-_great_whale_shark.jpg","a":"Abe Khao Lak","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Similan_Dive_Center_-_great_whale_shark.jpg"},"manta":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Manta_birostris-Thailand4.jpg/500px-Manta_birostris-Thailand4.jpg","a":"jon hanson from london, UK","l":"CC BY-SA 2.0","f":"https://commons.wikimedia.org/wiki/File:Manta_birostris-Thailand4.jpg"},"flyingfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/C.pinnatibarbatus.jpg/500px-C.pinnatibarbatus.jpg","a":"Dieno","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:C.pinnatibarbatus.jpg"},"leatherback":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Leatherback_sea_turtle_Tinglar%2C_USVI_%285839996547%29.jpg/500px-Leatherback_sea_turtle_Tinglar%2C_USVI_%285839996547%29.jpg","a":"U.S. Fish and Wildlife Service Southeast Region","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Leatherback_sea_turtle_Tinglar,_USVI_(5839996547).jpg"},"sunfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/9/98/Mola_mola.jpg/500px-Mola_mola.jpg","a":"U.S. National Oceanic and Atmospheric Administration","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Mola_mola.jpg"},"tuna":{"u":"https://upload.wikimedia.org/wikipedia/commons/c/c3/Thunnus_albacares.png","a":"Wikimedia Commons","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Thunnus_albacares.png"},"manowar":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c3/Portuguese_Man-O-War_%28Physalia_physalis%29.jpg/500px-Portuguese_Man-O-War_%28Physalia_physalis%29.jpg","a":"Image courtesy of Islands in the Sea 2002, NOAA/OER.","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Portuguese_Man-O-War_(Physalia_physalis).jpg"},"phyto":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Mixed_phytoplankton_community_2.png/500px-Mixed_phytoplankton_community_2.png","a":"University of Rhode Island/Stephanie Anderson","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Mixed_phytoplankton_community_2.png"},"emperor":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/Aptenodytes_forsteri_-Snow_Hill_Island%2C_Antarctica_-adults_and_juvenile-8.jpg/500px-Aptenodytes_forsteri_-Snow_Hill_Island%2C_Antarctica_-adults_and_juvenile-8.jpg","a":"Ian Duffy from UK","l":"CC BY 2.0","f":"https://commons.wikimedia.org/wiki/File:Aptenodytes_forsteri_-Snow_Hill_Island,_Antarctica_-adults_and_juvenile-8.jpg"},"orca":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Killerwhales_jumping.jpg/500px-Killerwhales_jumping.jpg","a":"Robert Pittman","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Killerwhales_jumping.jpg"},"narwhal":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/%D0%9D%D0%B0%D1%80%D0%B2%D0%B0%D0%BB_%D0%B2_%D1%80%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B9_%D0%90%D1%80%D0%BA%D1%82%D0%B8%D0%BA%D0%B5.jpg/500px-%D0%9D%D0%B0%D1%80%D0%B2%D0%B0%D0%BB_%D0%B2_%D1%80%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B9_%D0%90%D1%80%D0%BA%D1%82%D0%B8%D0%BA%D0%B5.jpg","a":"\u043f\u0440\u0435\u0441\u0441-\u0441\u043b\u0443\u0436\u0431\u0430 \u041f\u0410\u041e \"\u0413\u0430\u0437\u043f\u0440\u043e\u043c \u043d\u0435\u0444\u0442\u044c\"","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:%D0%9D%D0%B0%D1%80%D0%B2%D0%B0%D0%BB_%D0%B2_%D1%80%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B9_%D0%90%D1%80%D0%BA%D1%82%D0%B8%D0%BA%D0%B5.jpg"},"leopardseal":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Antarctic_Sound-2016-Brown_Bluff%E2%80%93Leopard_seal_%28Hydrurga_leptonyx%29_04.jpg/500px-Antarctic_Sound-2016-Brown_Bluff%E2%80%93Leopard_seal_%28Hydrurga_leptonyx%29_04.jpg","a":"Godot13","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Antarctic_Sound-2016-Brown_Bluff%E2%80%93Leopard_seal_(Hydrurga_leptonyx)_04.jpg"},"weddell":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Mikkelsen_Harbour-2016-Trinity_Island_%28D%27Hainaut_Island%29%E2%80%93Weddell_seal_%28Leptonychotes_weddellii%29_03.jpg/500px-Mikkelsen_Harbour-2016-Trinity_Island_%28D%27Hainaut_Island%29%E2%80%93Weddell_seal_%28Leptonychotes_weddellii%29_03.jpg","a":"Godot13","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Mikkelsen_Harbour-2016-Trinity_Island_(D%27Hainaut_Island)%E2%80%93Weddell_seal_(Leptonychotes_weddellii)_03.jpg"},"adelie":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Hope_Bay-2016-Trinity_Peninsula%E2%80%93Ad%C3%A9lie_penguin_%28Pygoscelis_adeliae%29_04.jpg/500px-Hope_Bay-2016-Trinity_Peninsula%E2%80%93Ad%C3%A9lie_penguin_%28Pygoscelis_adeliae%29_04.jpg","a":"Godot13","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:Hope_Bay-2016-Trinity_Peninsula%E2%80%93Ad%C3%A9lie_penguin_(Pygoscelis_adeliae)_04.jpg"},"krill":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Antarctic_krill_%28Euphausia_superba%29.jpg/500px-Antarctic_krill_%28Euphausia_superba%29.jpg","a":"Uwe Kils I am willing to give the image in 1700 resolution t","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Antarctic_krill_(Euphausia_superba).jpg"},"polarcod":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Boreogadus_saida.jpg/500px-Boreogadus_saida.jpg","a":"H. L. Todd","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Boreogadus_saida.jpg"},"seaangel":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Clione_limacina_by_NOAA.jpg/500px-Clione_limacina_by_NOAA.jpg","a":"Kevin Raskoff, Hidden Ocean 2005 Expedition: NOAA Office of","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Clione_limacina_by_NOAA.jpg"},"petrel":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/SouthernGiantPetrel.jpg/500px-SouthernGiantPetrel.jpg","a":"Polinova","l":"CC BY-SA 4.0","f":"https://commons.wikimedia.org/wiki/File:SouthernGiantPetrel.jpg"},"anglerfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Humpback_anglerfish.png/500px-Humpback_anglerfish.png","a":"Wikimedia Commons","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Humpback_anglerfish.png"},"giantsquid":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Giant_squid_Ranheim.jpg/500px-Giant_squid_Ranheim.jpg","a":"NTNU Vitenskapsmuseet","l":"CC BY 2.0","f":"https://commons.wikimedia.org/wiki/File:Giant_squid_Ranheim.jpg"},"vampiresquid":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Vampyroteuthis_illustration.jpg/500px-Vampyroteuthis_illustration.jpg","a":"Carl Chun","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Vampyroteuthis_illustration.jpg"},"lanternfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Messina_Straits_Myctophum_punctatum_%281%29.jpg/500px-Messina_Straits_Myctophum_punctatum_%281%29.jpg","a":"Edd48","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Messina_Straits_Myctophum_punctatum_(1).jpg"},"gulper":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Eurypharynx_pelecanoides.jpg/500px-Eurypharynx_pelecanoides.jpg","a":"Wikimedia Commons","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Eurypharynx_pelecanoides.jpg"},"crystaljelly":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Aequorea4.jpg/500px-Aequorea4.jpg","a":"Ssblakely","l":"Attribution","f":"https://commons.wikimedia.org/wiki/File:Aequorea4.jpg"},"dumbo":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Dumbo-hires_%28cropped%29.jpg/500px-Dumbo-hires_%28cropped%29.jpg","a":"NOAA Okeanos Explorer","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Dumbo-hires_(cropped).jpg"},"hatchetfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/Argyropelecus_lychnus_SI.jpg/500px-Argyropelecus_lychnus_SI.jpg","a":"Sandra Raredon/Smithsonian Institution","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Argyropelecus_lychnus_SI.jpg"},"blobfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Psychrolutes_marcidus.jpg/500px-Psychrolutes_marcidus.jpg","a":"Alan Riverstone McCulloch (1885-1925)","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Psychrolutes_marcidus.jpg"},"siphonophore":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Praya_dubia_%28Giant_siphonophore%29.jpg/500px-Praya_dubia_%28Giant_siphonophore%29.jpg","a":"Catriona Munro, Stefan Siebert, Felipe Zapata, Mark Howison,","l":"CC BY 4.0","f":"https://commons.wikimedia.org/wiki/File:Praya_dubia_(Giant_siphonophore).jpg"},"tubeworm":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Campagne_HOT_-_Vers_g%C3%A9ants_%28Riftia_pachyptila%29_%28Ifremer_00530-64223_-_52381%29.jpg/500px-Campagne_HOT_-_Vers_g%C3%A9ants_%28Riftia_pachyptila%29_%28Ifremer_00530-64223_-_52381%29.jpg","a":"Wikimedia Commons","l":"CC BY 4.0","f":"https://commons.wikimedia.org/wiki/File:Campagne_HOT_-_Vers_g%C3%A9ants_(Riftia_pachyptila)_(Ifremer_00530-64223_-_52381).jpg"},"yeticrab":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Yeti_crab.jpg/500px-Yeti_crab.jpg","a":"Andrew Thurber, Oregon State University","l":"CC BY-SA 2.0","f":"https://commons.wikimedia.org/wiki/File:Yeti_crab.jpg"},"ventshrimp":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Rimicaris_exoculata_%28MNHN-IU-2014-22822%29.jpeg/500px-Rimicaris_exoculata_%28MNHN-IU-2014-22822%29.jpeg","a":"Laura Flamme","l":"CC BY 4.0","f":"https://commons.wikimedia.org/wiki/File:Rimicaris_exoculata_(MNHN-IU-2014-22822).jpeg"},"pompeii":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Alvinella_pompejana01.jpg/500px-Alvinella_pompejana01.jpg","a":"National Science Foundation (University of Delaware College","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Alvinella_pompejana01.jpg"},"seapig":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/Scotoplanes_globosa1.jpg/500px-Scotoplanes_globosa1.jpg","a":"Lindberg","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Scotoplanes_globosa1.jpg"},"tripodfish":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Campagne_BIOZAIRE_2_-_Poisson_tr%C3%A9pied_ou_poisson_tripode_%28Ifremer_00574-68561%29_1.jpg/500px-Campagne_BIOZAIRE_2_-_Poisson_tr%C3%A9pied_ou_poisson_tripode_%28Ifremer_00574-68561%29_1.jpg","a":"Wikimedia Commons","l":"CC BY 4.0","f":"https://commons.wikimedia.org/wiki/File:Campagne_BIOZAIRE_2_-_Poisson_tr%C3%A9pied_ou_poisson_tripode_(Ifremer_00574-68561)_1.jpg"},"cuskeel":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Spectrunculus_grandis_2.jpg/500px-Spectrunculus_grandis_2.jpg","a":"NOAA/MBARI","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Spectrunculus_grandis_2.jpg"},"swallower":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Chiasmodon_niger.jpg/500px-Chiasmodon_niger.jpg","a":"Wikimedia Commons","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Chiasmodon_niger.jpg"},"xeno":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dd/Syringammina_Fragilissima.jpg/500px-Syringammina_Fragilissima.jpg","a":"Cedhagen, Tomas","l":"CC BY-SA 3.0","f":"https://commons.wikimedia.org/wiki/File:Syringammina_Fragilissima.jpg"},"grenadier":{"u":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Coryphaenoides_acrolepis.jpg/500px-Coryphaenoides_acrolepis.jpg","a":"NOAA/MBARI","l":"Public domain","f":"https://commons.wikimedia.org/wiki/File:Coryphaenoides_acrolepis.jpg"}};
+function photoImg(sp,cls){var ph=PHOTO[sp.id];if(!ph)return null;var im=new Image();im.className=cls;im.src=ph.u;im.alt=sp.n;im.loading="lazy";return im}
+function photoCred(sp){var ph=PHOTO[sp.id];if(!ph)return"";return '<a href="'+ph.f+'" target="_blank" rel="noopener">Photo: '+ph.a+' / '+ph.l+'</a>'}
+var IUCN={"clownfish":["LC","2022","https://doi.org/10.2305/IUCN.UK.2022-2.RLTS.T188321A1857718.en"],"bluetang":["LC","2021","https://doi.org/10.2305/IUCN.UK.2012.RLTS.T177972A1507676.en"],"greenturtle":["LC","2025","https://doi.org/10.2305/IUCN.UK.2025-2.RLTS.T4615A285108125.en"],"staghorn":["CR","2008","https://doi.org/10.2305/IUCN.UK.2008.RLTS.T133381A3716457.en"],"anemone":["NV",null,null],"angelfish":["LC","2021","https://doi.org/10.2305/IUCN.UK.2010-4.RLTS.T165862A6151184.en"],"moray":["LC","2021","https://doi.org/10.2305/IUCN.UK.2019-1.RLTS.T195741A2410981.en"],"hermit":["NV",null,null],"parrotfish":["LC","2021","https://doi.org/10.2305/IUCN.UK.2012.RLTS.T190755A17776719.en"],"seagrass":["LC","2016","https://www.iucnredlist.org/species/153534/135156882"],"otter":["EN","2021","https://doi.org/10.2305/IUCN.UK.2021-3.RLTS.T7750A219377647.en"],"kelp":["NV",null,null],"garibaldi":["NV",null,null],"leopardshark":["LC","2021","https://doi.org/10.2305/IUCN.UK.2015-4.RLTS.T39363A80672743.en"],"urchin":["NV",null,null],"batray":["LC","2015","https://doi.org/10.2305/IUCN.UK.2015-4.RLTS.T39416A80677869.en"],"harborseal":["LC","2021","https://doi.org/10.2305/IUCN.UK.2016-1.RLTS.T17013A45229114.en"],"gpoctopus":["LC","2018","https://doi.org/10.2305/IUCN.UK.2018-2.RLTS.T162958A958049.en"],"sunstar":["CR","2021","https://www.iucnredlist.org/species/178290276/197818455"],"kelpperch":["DD","2020","https://doi.org/10.2305/IUCN.UK.2020-2.RLTS.T141481252A141781353.en"],"humpback":["LC","2018","https://doi.org/10.2305/IUCN.UK.2018-2.RLTS.T13006A50362794.en"],"dolphin":["LC","2019","https://doi.org/10.2305/IUCN.UK.2019-1.RLTS.T22563A156932432.en"],"whaleshark":["EN","2016","https://doi.org/10.2305/IUCN.UK.2016-1.RLTS.T19488A2365291.en"],"manta":["EN","2022","https://doi.org/10.2305/IUCN.UK.2022-1.RLTS.T198921A214397182.en"],"flyingfish":["XX",null,null],"leatherback":["VU","2013","https://doi.org/10.2305/IUCN.UK.2013-2.RLTS.T6494A43526147.en"],"sunfish":["VU","2015","https://www.iucnredlist.org/species/190422/97667070"],"tuna":["LC","2021","https://doi.org/10.2305/IUCN.UK.2021-2.RLTS.T21857A46624561.en"],"manowar":["NV",null,null],"phyto":["XX",null,null],"emperor":["NT","2021","https://doi.org/10.2305/IUCN.UK.2020-3.RLTS.T22697752A157658053.en"],"orca":["DD","2021","https://doi.org/10.2305/IUCN.UK.2017-3.RLTS.T15421A50368125.en"],"narwhal":["LC","2017","https://doi.org/10.2305/IUCN.UK.2017-3.RLTS.T13704A50367651.en"],"leopardseal":["LC","2015","https://doi.org/10.2305/IUCN.UK.2015-4.RLTS.T10340A45226422.en"],"weddell":["LC","2021","https://doi.org/10.2305/IUCN.UK.2015-4.RLTS.T11696A45226713.en"],"adelie":["LC","2020","https://doi.org/10.2305/IUCN.UK.2020-3.RLTS.T22697758A157660553.en"],"krill":["LC","2021","https://doi.org/10.2305/IUCN.UK.2015-2.RLTS.T64239743A64239951.en"],"polarcod":["NV",null,null],"seaangel":["NV",null,null],"petrel":["LC","2021","https://doi.org/10.2305/IUCN.UK.2018-2.RLTS.T22697852A132608499.en"],"anglerfish":["NV",null,null],"giantsquid":["LC","2021","https://doi.org/10.2305/IUCN.UK.2014-1.RLTS.T163265A991505.en"],"vampiresquid":["NV",null,null],"lanternfish":["XX",null,null],"gulper":["LC","2014","https://www.iucnredlist.org/species/18227119/45085416"],"crystaljelly":["NV",null,null],"dumbo":["XX",null,null],"hatchetfish":["XX",null,null],"blobfish":["NV",null,null],"siphonophore":["NV",null,null],"tubeworm":["NV",null,null],"yeticrab":["NV",null,null],"ventshrimp":["NV",null,null],"pompeii":["NV",null,null],"seapig":["XX",null,null],"tripodfish":["LC","2021","https://doi.org/10.2305/IUCN.UK.2015-4.RLTS.T194992A15571915.en"],"cuskeel":["LC","2015","https://doi.org/10.2305/IUCN.UK.2015-4.RLTS.T18139045A60799962.en"],"swallower":["LC","2015","https://www.iucnredlist.org/species/190310/21914202"],"xeno":["NV",null,null],"grenadier":["XX",null,null]};
+var IUL={LC:["LEAST CONCERN","doing OK","#3dff6e"],NT:["NEAR THREATENED","close to trouble","#b8e04a"],VU:["VULNERABLE","at risk","#ffd23f"],EN:["ENDANGERED","in danger","#ff9a3a"],CR:["CRIT. ENDANGERED","in big danger","#ff5d5d"],DD:["DATA DEFICIENT","not enough information","#9fb6cc"],NV:["NOT VERIFIED","status not verified yet","#8fb6cc"],XX:["NO SINGLE RATING","a group, not one species","#8fb6cc"]};
+function iucnPill(sp){var v=IUCN[sp.id]||["NV",null,null];var d=IUL[v[0]];return '<span class="cbadge" style="border-color:'+d[2]+';color:'+d[2]+'">'+d[0]+"</span>"}
+function iucnLine(sp){var v=IUCN[sp.id]||["NV",null,null];var d=IUL[v[0]];var t=iucnPill(sp)+" "+d[1];if(v[0]==="NV")t+=' <span class="small">(not checked against the IUCN Red List yet - unverified does not mean safe)</span>';else if(v[0]==="XX")t+=' <span class="small">(a group card - the IUCN rates species, not groups)</span>';else if(v[0]==="NE")t+=' <span class="small">(the IUCN has not assessed this species - not assessed does not mean safe)</span>';else{var s="(IUCN Red List"+(v[1]?", "+v[1]:"")+")";t+=' <span class="small">'+(v[2]?'<a href="'+v[2]+'" target="_blank" rel="noopener" style="color:#7fd8ff">'+s+"</a>":s)+"</span>"}return t}
+/* ---------- card component (tap to flip) ---------- */
+function cardEl(sp){
+ var fz=el("div","flipzone");
+ var c=el("div","card3d");
+ var front=el("div","face cface-f");
+ front.appendChild(el("div","cseries",'<span>OCEAN EXPLORERS</span><span class="cnum">'+cardNum(sp)+'</span>'));
+ var art=el("div","center");art.style.background="linear-gradient(#104a72,#08233d)";art.style.padding="8px 6px";
+ var pim=photoImg(sp,"cardphoto");if(pim){art.appendChild(pim)}else{var cv=drawSprite(art,sp,{});cv.style.margin="0 auto";cv.style.width="216px"}
+ art.appendChild(el("div","photocred",photoCred(sp)));
+ front.appendChild(art);
+ front.appendChild(el("div","cname",sp.n));
+ front.appendChild(el("div","csub",stars(sp.rar)+" &nbsp;"+CATS[sp.cat]+" &middot; "+ZONES[sp.z].n));
+ front.appendChild(el("div","cstat",iucnPill(sp)+' <span class="small">tap to flip</span>'));
+ var backf=el("div","face cface-b");
+ var bb=el("div","cback");
+ bb.appendChild(el("h3",null,sp.n));
+ bb.appendChild(el("div","sci",sp.sci));
+ bb.appendChild(el("p",null,'<span class="lab">Group:</span> '+CATS[sp.cat]));
+ bb.appendChild(el("p",null,'<span class="lab">Home:</span> '+ZONES[sp.z].n));
+ bb.appendChild(el("p",null,'<span class="lab">Size:</span> '+sp.size));
+ bb.appendChild(el("p",null,'<span class="lab">Depth:</span> '+sp.depth));
+ bb.appendChild(el("p",null,'<span class="lab">Eats:</span> '+sp.diet));
+ bb.appendChild(el("p",null,'<span class="lab">Extinction risk:</span> '+iucnLine(sp)));
+ bb.appendChild(el("p","cfact",sp.fact));
+ bb.appendChild(el("p","csrc","Source: "+srcOf(sp)[0]));
+ bb.appendChild(el("p","csrc photocred",photoCred(sp)));
+ bb.appendChild(el("p",null,'<span class="cnum">'+cardNum(sp)+'</span> '+stars(sp.rar)+' <span class="small">tap to flip</span>'));
+ backf.appendChild(bb);
+ c.appendChild(front);c.appendChild(backf);fz.appendChild(c);
+ fz.onclick=function(){c.classList.toggle("flip");sfx("flip")};
+ return fz;
+}
+/* ---------- home ---------- */
+function scrHome(scr){
+ var h=el("div","panel center");
+ h.appendChild(el("div",null,"<b>Dive in, scan sea life, and collect all "+SP.length+" discovery cards.</b>"));
+ var hero=el("div","center");hero.style.margin="6px 0";
+ var whale=spById("humpback");var cv=drawSprite(hero,whale,{});cv.style.width="240px";cv.style.margin="0 auto";
+ h.appendChild(hero);
+ scr.appendChild(h);
+ var r1=el("div","row");
+ var b1=el("button","big","EXPEDITIONS<br><span class='small'>explore 6 ocean zones</span>");b1.onclick=function(){sfx("ok");go("zones")};
+ var b2=el("button","big","CARD DECK<br><span class='small'>"+gotCount()+" / "+SP.length+" collected</span>");b2.onclick=function(){sfx("flip");go("deck")};
+ r1.appendChild(b1);r1.appendChild(b2);scr.appendChild(r1);
+ var r2=el("div","row");
+ var b3=el("button","big","GAMES<br><span class='small'>quiz, memory, sorting</span>");b3.onclick=function(){sfx("ok");go("games")};
+ var b4=el("button","big","HOW TO PLAY");b4.onclick=function(){go("help")};
+ r2.appendChild(b3);r2.appendChild(b4);scr.appendChild(r2);
+ var r3=el("div","row");
+ var snd=el("button",null,"Sound: "+(S.snd?"on":"off"));snd.onclick=function(){S.snd=S.snd?0:1;save();snd.textContent="Sound: "+(S.snd?"on":"off");sfx("ok")};
+ r3.appendChild(snd);scr.appendChild(r3);
+ var tip=el("div","panel small","Tap any card to flip it and read its facts. New zones and game levels unlock when you clear the ones before: 3 clears each. Plants, corals, mammals, fish, birds, reptiles and invertebrates all have their own cards.");
+ scr.appendChild(tip);
+}
+function scrHelp(scr){
+ scr.appendChild(el("div","panel",
+ "<b>Expeditions.</b> Pick a zone and dive. Tap any living thing to scan it. Scan all 6 target species before your air runs out to <b>clear the dive</b>. Clear 3 dives in a zone to unlock the next zone.<br><br>"+
+ "<b>Cards.</b> Every scan adds a discovery card to your deck. Tap a card to flip it: art on the front, facts on the back. Rare cards show 2 or 3 stars.<br><br>"+
+ "<b>Games.</b> Who Am I (clue quiz), Card Memory (match pairs), and Ocean Sort (tap the right group). Clear rule: 8 of 10 in Who Am I, finish the board in Memory, 10 of 12 in Ocean Sort. 3 clears unlock the next level.<br><br>"+
+ "<b>About the groups.</b> Groups in this game are made for play, not strict science: corals and anemones get their own group even though they are also invertebrates, and algae (like phytoplankton) sit with plants even though they are not true plants.<br><br>"+
+ "<b>Extinction risk.</b> Each card back shows how close the species is to extinction, from the IUCN Red List: Least Concern (doing OK), Near Threatened (close to trouble), Vulnerable (at risk), Endangered (in danger), Critically Endangered (in big danger). Data Deficient means there is not enough information. Not verified means we have not checked this species against the Red List yet - that does not mean it is safe. Group cards show No single rating because the IUCN rates species, not groups. Statuses reflect the cited assessment year and may have changed. The stars on a card front are only collection rarity, not risk."));
+ h.appendChild(el("p",null,'<a href="https://www.iucnredlist.org" target="_blank" rel="noopener" style="color:#7fd8ff">IUCN Red List</a>'));
+ h.appendChild(el("p",null,"<b>Your explorer.</b> The game uses your Pixel Arcade name and avatar. Tap \"Change name & avatar\" up top to edit them on the hub."));
+ var d=el("details","srcs panel");
+ d.appendChild(el("summary",null,"Sources for every card (for grown-ups)"));
+ SP.forEach(function(sp){var ex=SRC2[sp.id];var list=[srcOf(sp)].concat(ex?(Object.prototype.toString.call(ex[0])==="[object Array]"?ex:[ex]):[]);list.forEach(function(sc){if(sc&&sc[1])d.appendChild(el("div","srcline",'<a href="'+sc[1]+'" target="_blank" rel="noopener">'+sp.n+" - "+sc[0]+"</a>"))});var pc=photoCred(sp);if(pc)d.appendChild(el("div","srcline photocred",sp.n+" - "+pc))});
+ scr.appendChild(d);
+ var r=el("div","row");var b=el("button",null,"Got it");b.onclick=function(){back()};r.appendChild(b);scr.appendChild(r);
+}
+/* ---------- zones ---------- */
+function scrZones(scr){
+ scr.appendChild(el("h2",null,"CHOOSE YOUR EXPEDITION"));
+ ZONES.forEach(function(z,i){
+  var un=zoneUnlocked(i);
+  var card=el("div","zcard"+(un?"":" dim"));
+  var spz=zoneSp(i),got=spz.filter(function(s){return S.got[s.id]}).length;
+  var head=el("div",null,"<h3>"+(un?"":svgI(IC.lock,"#8fb6cc",14)+" ")+z.n+"</h3>");
+  card.appendChild(head);
+  card.appendChild(el("div","small",z.d+" Cards here: "+got+" / "+spz.length+". Clears: "+(S.clears[z.id]||0)+" / 3."));
+  var bar=el("div","zbar");var fill=el("i");fill.style.width=Math.min(100,(S.clears[z.id]||0)/3*100)+"%";bar.appendChild(fill);card.appendChild(bar);
+  if(!un)card.appendChild(el("div","small","Clear "+ZONES[i-1].n+" 3 times to unlock."));
+  var r=el("div","row");
+  var b=el("button",null,un?"Dive":"Locked");
+  if(un)b.onclick=function(){sfx("ok");go("dive",i)};
+  else b.disabled=true;
+  r.appendChild(b);card.appendChild(r);
+  scr.appendChild(card);
+ });
+}
+/* ---------- deck ---------- */
+var deckFilter={z:-1,cat:""};
+function scrDeck(scr){
+ scr.appendChild(el("h2",null,"CARD DECK &middot; "+gotCount()+" / "+SP.length));
+ var chips=el("div","chips");
+ function chip(label,fn,on){var b=el("button",on?"on":"",label);b.onclick=fn;chips.appendChild(b)}
+ chip("All zones",function(){deckFilter.z=-1;render("deck")},deckFilter.z===-1);
+ ZONES.forEach(function(z,i){chip(z.n,function(){deckFilter.z=i;render("deck")},deckFilter.z===i)});
+ scr.appendChild(chips);
+ var chips2=el("div","chips");
+ function chip2(label,cat){var b=el("button",deckFilter.cat===cat?"on":"",label);b.onclick=function(){deckFilter.cat=deckFilter.cat===cat?"":cat;render("deck")};chips2.appendChild(b)}
+ for(var c in CATS)chip2(CATS[c],c);
+ scr.appendChild(chips2);
+ var grid=el("div","deck");
+ SP.forEach(function(sp){
+  if(deckFilter.z!==-1&&sp.z!==deckFilter.z)return;
+  if(deckFilter.cat&&sp.cat!==deckFilter.cat)return;
+  var got=!!S.got[sp.id];
+  var m=el("div","mini "+(got?"got":"miss"));
+  var ah=el("div");ah.style.background="linear-gradient(#104a72,#08233d)";ah.style.borderRadius="4px";
+  var dim=photoImg(sp,"dphoto");if(dim){if(!got)dim.style.filter="brightness(.22) saturate(.4)";ah.appendChild(dim)}else drawSprite(ah,sp,{dark:!got});
+  m.appendChild(ah);
+  m.appendChild(el("span","nm",(got?sp.n:"? ? ?")+"<br>"+cardNum(sp)));
+  m.onclick=function(){if(got)go("card",sp.id);else{sfx("no");m.classList.add("on");setTimeout(function(){m.classList.remove("on")},300)}};
+  grid.appendChild(m);
+ });
+ scr.appendChild(grid);
+}
+function scrCard(scr,id){
+ var sp=spById(id);if(!sp){go("deck");return}
+ scr.appendChild(cardEl(sp));
+ var r=el("div","row");var b=el("button",null,"Back to deck");b.onclick=function(){back()};r.appendChild(b);scr.appendChild(r);
+}
+</script>
+<script>
+"use strict";
+/* ---------- expedition ---------- */
+var D=null;
+function stopDive(){if(D&&D.raf)cancelAnimationFrame(D.raf);D=null}
+function scrDive(scr,zi){
+ if(!zoneUnlocked(zi)){go("zones");return}
+ var z=ZONES[zi],spz=zoneSp(zi);
+ scr.appendChild(el("h2",null,z.n.toUpperCase()+" &middot; DIVE"));
+ var wrap=el("div","",null);wrap.id="divewrap";
+ var cv=mkCan(380,460);cv.id="dive";wrap.appendChild(cv);
+ var toast=el("div","toast");wrap.appendChild(toast);
+ var overlay=el("div","center");overlay.style.cssText="position:absolute;inset:0;background:#04101cd9;display:none;overflow:auto;padding:10px;box-sizing:border-box;z-index:6";
+ wrap.appendChild(overlay);
+ scr.appendChild(wrap);
+ var hud=el("div","hud");
+ var tgts={};
+ var uncol=shuffle(spz.filter(function(s){return!S.got[s.id]}));
+ var col=shuffle(spz.filter(function(s){return S.got[s.id]}));
+ var targets=uncol.concat(col).slice(0,6);
+ targets.forEach(function(sp){
+  var t=el("div","tg");var tc=mkCan(44,32);var g=tc.getContext("2d");g.imageSmoothingEnabled=false;
+  g.drawImage(spr(sp,true),0,0,44,31);t.appendChild(tc);
+  t.title=sp.n;hud.appendChild(t);tgts[sp.id]=t;
+ });
+ var airW=el("div","airbar");var airF=el("i");airW.appendChild(airF);hud.appendChild(airW);
+ scr.appendChild(hud);
+ scr.appendChild(el("div","small center","Tap any living thing to scan it. Scan all 6 targets before your air runs out to clear the dive."));
+ var g=cv.getContext("2d");g.imageSmoothingEnabled=false;
+ var decor=[];
+ var floorSp=spz.filter(function(s){return FLOOR_PLANS[s.plan]});
+ shuffle(floorSp).slice(0,4).forEach(function(sp,i){
+  decor.push({sp:sp,x:50+i*95+(i%2?20:-10),y:430-(sp.plan==="kelp"?30:0),sc:1.7});
+ });
+ var W=380,H=460;
+ D={raf:0,zi:zi,z:z,air:95,t:0,swim:[],spawnT:0,scan:null,done:{},sub:{x:90,y:230},targets:targets,over:false,paused:false,toast:toast,overlay:overlay,tgts:tgts,airF:airF,decor:decor};
+ function spawn(){
+  if(D.swim.length>=7)return;
+  var pool=[];
+  var rem=D.targets.filter(function(sp){return!D.done[sp.id]&&!FLOOR_PLANS[sp.plan]&&!D.swim.some(function(c){return c.sp.id===sp.id})});
+  var movers=spz.filter(function(s){return !FLOOR_PLANS[s.plan]});
+  if(rem.length&&Math.random()<.6)pool.push(rem[(Math.random()*rem.length)|0]);
+  else pool.push(movers[(Math.random()*movers.length)|0]);
+  var sp=pool[0];if(!sp)return;
+  var dir=Math.random()<.5?1:-1;
+  var y=AIR_PLANS[sp.plan]?40+Math.random()*70:80+Math.random()*300;
+  var rare=sp.rar===3;
+  D.swim.push({sp:sp,x:dir>0?-70:W+70,y:y,vx:dir*(rare?52:22+Math.random()*22),sc:rare?1.35:1.55,ph:Math.random()*6.28});
+ }
+ function showToast(msg){D.toast.textContent=msg;D.toast.style.display="block";clearTimeout(D.toastT);D.toastT=setTimeout(function(){if(D)D.toast.style.display="none"},1600)}
+ function popup(sp,isNew){
+  D.paused=true;
+  var ov=D.overlay;ov.innerHTML="";ov.style.display="block";
+  ov.appendChild(el("div",null,'<h2 style="margin:2px">'+(isNew?"NEW DISCOVERY!":"LOGGED AGAIN")+"</h2>"));
+  ov.appendChild(cardEl(sp));
+  var r=el("div","row");var b=el("button","big","Keep diving");
+  b.onclick=function(){ov.style.display="none";D.paused=false;if(allDone())finish(true)};
+  r.appendChild(b);ov.appendChild(r);
+ }
+ function allDone(){return D.targets.every(function(sp){return D.done[sp.id]})}
+ function finish(cleared){
+  if(D.over)return;D.over=true;
+  if(cleared){S.clears[D.z.id]=(S.clears[D.z.id]||0)+1;save();sfx("clear")}else sfx("no");
+  var ov=D.overlay;ov.innerHTML="";ov.style.display="block";
+  ov.appendChild(el("h2",null,cleared?"DIVE CLEARED!":"OUT OF AIR"));
+  var got=D.targets.filter(function(sp){return D.done[sp.id]}).length;
+  ov.appendChild(el("div","panel","Targets scanned: "+got+" / 6.<br>Clears in "+D.z.n+": "+(S.clears[D.z.id]||0)+" / 3."+
+   (cleared&&(S.clears[D.z.id]>=3)&&D.zi<5?"<br><b>"+ZONES[D.zi+1].n+" unlocked!</b>":"")));
+  var r1=el("div","row");var b1=el("button","big","Dive again");b1.onclick=function(){render("dive",D?D.zi:0)};r1.appendChild(b1);
+  var b2=el("button","big","Choose zone");b2.onclick=function(){go("zones")};r1.appendChild(b2);
+  ov.appendChild(r1);
+  var r2=el("div","row");var b3=el("button",null,"Open card deck");b3.onclick=function(){go("deck")};r2.appendChild(b3);ov.appendChild(r2);
+ }
+ function collect(sp){
+  var isNew=!S.got[sp.id];
+  S.got[sp.id]=1;save();
+  if(D.targets.some(function(t){return t.id===sp.id})){D.done[sp.id]=1;
+   var tg=D.tgts[sp.id];if(tg){tg.classList.add("done");var tc=tg.firstChild;var gg=tc.getContext("2d");gg.imageSmoothingEnabled=false;gg.drawImage(spr(sp),0,0,44,31)}}
+  sfx("scan");
+  if(D.targets.some(function(t){return t.id===sp.id}))popup(sp,isNew);
+  else showToast("Logged: "+sp.n+(isNew?" (new card)":""));
+ }
+ cv.addEventListener("pointerdown",function(e){
+  if(!D||D.paused||D.over)return;
+  var r=cv.getBoundingClientRect();
+  var x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;
+  D.sub.tx=x;D.sub.ty=y;
+  var best=null,bd=40;
+  D.swim.forEach(function(c){var d=Math.hypot(c.x-x,c.y-y);if(d<bd){bd=d;best=c}});
+  D.decor.forEach(function(c){var d=Math.hypot(c.x-x,c.y-(c.sp.plan==="kelp"?400:430));if(d<bd+8){bd=d;best={sp:c.sp,x:c.x,y:c.y,deco:true}}});
+  if(best&&!D.scan){D.scan={c:best,p:0}}
+ });
+ var last=0;
+ function frame(ts){
+  if(!D)return;
+  var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(!D.paused&&!D.over){
+   D.t+=dt;D.air-=dt;
+   if(D.air<=0){D.air=0;finish(allDone())}
+   D.spawnT-=dt;if(D.spawnT<=0){spawn();D.spawnT=.9+Math.random()*.8}
+   D.swim.forEach(function(c){c.x+=c.vx*dt;c.ph+=dt*2;c.y+=Math.sin(c.ph)*.3});
+   D.swim=D.swim.filter(function(c){return c.x>-90&&c.x<W+90});
+   if(D.sub.tx!=null){D.sub.x+=(D.sub.tx-D.sub.x)*3*dt;D.sub.y+=(D.sub.ty-D.sub.y)*3*dt}
+   D.sub.x=Math.max(40,Math.min(W-40,D.sub.x));D.sub.y=Math.max(60,Math.min(H-60,D.sub.y));
+   if(D.scan){D.scan.p+=dt/0.9;
+    if(D.scan.c.deco){/* static */}
+    else{D.scan.c.vx*=Math.pow(.02,dt)}
+    if(D.scan.p>=1){var sp=D.scan.c.sp;D.swim=D.swim.filter(function(c){return c!==D.scan.c});D.scan=null;collect(sp)}}
+  }
+  draw(g);
+  D.airF.style.width=(D.air/95*100)+"%";
+  D.airF.style.background=D.air<20?"#ff5d6a":"";
+  D.raf=requestAnimationFrame(frame);
+ }
+ function draw(g){
+  var gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,D.z.top);gr.addColorStop(1,D.z.bot);
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.globalAlpha=.12;g.fillStyle="#fff";
+  for(var i=0;i<3;i++){g.beginPath();g.moveTo(60+i*120,0);g.lineTo(110+i*120,0);g.lineTo(60+i*120,H);g.lineTo(-10+i*120,H);g.fill()}
+  g.globalAlpha=1;
+  g.fillStyle=D.z.floor;g.fillRect(0,442,W,18);
+  D.decor.forEach(function(c){
+   var yy=c.sp.plan==="kelp"?442-56*c.sc*0+0:442;
+   var h=56*c.sc,w=80*c.sc;
+   g.drawImage(spr(c.sp),c.x-w/2,442-h,w,h);
+   if(D.targets.some(function(t){return t.id===c.sp.id})&&!D.done[c.sp.id]){g.strokeStyle="#ffd23f";g.lineWidth=2;g.strokeRect(c.x-w/2-3,442-h-3,w+6,h+6)}
+  });
+  D.swim.forEach(function(c){
+   var w=80*c.sc,h=56*c.sc,bob=Math.sin(c.ph)*3;
+   g.save();g.translate(c.x,c.y+bob);
+   if(c.vx<0){g.scale(-1,1)}
+   g.drawImage(spr(c.sp),-w/2,-h/2,w,h);
+   g.restore();
+   if(D.targets.some(function(t){return t.id===c.sp.id})&&!D.done[c.sp.id]){
+    g.strokeStyle="#ffd23f";g.lineWidth=2;g.beginPath();g.arc(c.x,c.y+bob,30,0,7);g.stroke()}
+  });
+  if(D.scan){var c=D.scan.c;
+   g.strokeStyle="#7fd8ff";g.lineWidth=3;
+   g.beginPath();g.moveTo(D.sub.x,D.sub.y);g.lineTo(c.x,c.y);g.stroke();
+   g.strokeStyle="#3dff6e";g.lineWidth=4;g.beginPath();g.arc(c.x,c.y,34,-Math.PI/2,-Math.PI/2+D.scan.p*6.283);g.stroke();
+  }
+  drawSub(g,D.sub.x,D.sub.y);
+ }
+ function drawSub(g,x,y){
+  g.fillStyle="#ffd23f";g.beginPath();g.ellipse(x,y,34,18,0,0,7);g.fill();
+  g.fillStyle="#e8a800";g.fillRect(x-8,y-26,16,10);
+  g.fillStyle="#ffd23f";g.beginPath();g.moveTo(x-34,y);g.lineTo(x-48,y-12);g.lineTo(x-48,y+12);g.closePath();g.fill();
+  g.fillStyle="#aee6ff";g.beginPath();g.arc(x+8,y-4,10,0,7);g.fill();
+  g.fillStyle="#12303f";g.beginPath();g.arc(x+10,y-4,4,0,7);g.fill();
+  g.fillStyle="#e8a800";g.fillRect(x-24,y+14,48,4);
+  g.fillStyle="#fff";g.font="bold 9px monospace";g.textAlign="center";g.fillText("NEREID",x-2,y+6);
+ }
+ D.raf=requestAnimationFrame(frame);
+}
+</script>
+<script>
+"use strict";
+/* ---------- games hub ---------- */
+function scrGames(scr){
+ scr.appendChild(el("h2",null,"GAMES"));
+ function lvl(name,key,state,desc,fn){
+  var lv=[["e","Easy"],["m","Medium"],["h","Hard"]];
+  var card=el("div","zcard");
+  card.appendChild(el("h3",null,name));
+  card.appendChild(el("div","small",desc));
+  var r=el("div","row");
+  lv.forEach(function(L,i){
+   var un=i===0||state[lv[i-1][0]]>=3;
+   var b=el("button",un?"":"dim",L[1]+(un?"<br><span class='small'>"+(state[L[0]]||0)+"/3 clears</span>":"<br>"+svgI(IC.lock,"#8fb6cc",12)));
+   if(un)b.onclick=function(){fn(L[0])};else b.disabled=true;
+   r.appendChild(b);
+  });
+  card.appendChild(r);scr.appendChild(card);
+ }
+ lvl("Who Am I?","quiz",S.quiz,"Clues appear one at a time. Name the species. 8 of 10 right with 3 lives clears a round.",function(l){go("quiz",l)});
+ lvl("Card Memory","mem",S.mem,"Flip cards and match pairs from your collection. Finish the board to clear it.",function(l){go("mem",l)});
+ var sc=el("div","zcard");
+ sc.appendChild(el("h3",null,"Ocean Sort"));
+ sc.appendChild(el("div","small","One species at a time: tap its group - fish, mammal, plant and so on. 10 of 12 right with 3 lives clears. Clears: "+S.sort+"."));
+ var r=el("div","row");var b=el("button",null,"Play");b.onclick=function(){go("sort")};r.appendChild(b);sc.appendChild(r);scr.appendChild(sc);
+}
+/* ---------- quiz ---------- */
+function scrQuiz(scr,level){
+ var pool=level==="e"?SP.filter(function(s){return s.z===0}):level==="m"?SP.filter(function(s){return s.z<=2}):SP.slice();
+ var qs=shuffle(pool.slice()).slice(0,10);
+ var qi=0,score=0,lives=3,ci=0,answered=false;
+ scr.appendChild(el("h2",null,"WHO AM I? &middot; "+{e:"EASY",m:"MEDIUM",h:"HARD"}[level]));
+ var status=el("div","small center");scr.appendChild(status);
+ var clues=el("div");scr.appendChild(clues);
+ var more=el("button","opt","Show another clue");scr.appendChild(more);
+ var opts=el("div");scr.appendChild(opts);
+ var sp,answers;
+ function cluesFor(sp){var cs=[{t:"Home: "+ZONES[sp.z].n+".",v:"z"+sp.z},{t:"It eats: "+sp.diet+".",v:"d"+sp.diet},{t:"Size: "+sp.size+".",v:"s"+sp.size},{t:sp.fact,v:"f"+sp.id}];
+  cs.forEach(function(c){c.n=answers.filter(function(a){return ("z"+a.z)===c.v||("d"+a.diet)===c.v||("s"+a.size)===c.v||("f"+a.id)===c.v}).length});
+  cs.sort(function(a,b){return a.n-b.n});return cs.map(function(c){return c.t})}
+ function round(){
+  if(lives<=0||qi>=10)return end();
+  answered=false;ci=0;sp=qs[qi];qi++;
+  var others=shuffle(pool.filter(function(s){return s.id!==sp.id})).slice(0,3);
+  answers=shuffle([sp].concat(others));
+  status.innerHTML="Question "+qi+" / 10 &middot; score "+score+" &middot; lives "+"&#9733;".repeat(lives);
+  clues.innerHTML="";opts.innerHTML="";
+  addClue();
+  more.style.display="";more.onclick=function(){if(ci<4){addClue();sfx("flip")}};
+  window.__poQuizSp=sp.id;
+  answers.forEach(function(a){
+   var b=el("button","opt");b.dataset.sp=a.id;
+   var row=el("span");row.style.cssText="display:flex;align-items:center;gap:10px;text-align:left";
+   var ic=el("span");ic.style.width="64px";ic.style.flexShrink="0";var qim=photoImg(a,"qphoto");if(qim)ic.appendChild(qim);else drawSprite(ic,a,{});row.appendChild(ic);
+   row.appendChild(el("span",null,a.n));
+   b.appendChild(row);
+   b.onclick=function(){
+    if(answered)return;answered=true;
+    if(a.id===sp.id){b.classList.add("ok");score++;sfx("ok")}
+    else{b.classList.add("no");lives--;sfx("no");
+     Array.prototype.forEach.call(opts.children,function(x,i){if(answers[i].id===sp.id)x.classList.add("ok")})}
+    setTimeout(round,900);
+   };
+   opts.appendChild(b);
+  });
+ }
+ function addClue(){var cs=cluesFor(sp);if(ci<cs.length){clues.appendChild(el("div","clue",cs[ci]));ci++}if(ci>=4)more.style.display="none"}
+ function end(){
+  var pass=score>=8&&lives>0;
+  if(pass){S.quiz[level]=(S.quiz[level]||0)+1;save();sfx("clear")}else sfx("no");
+  scr.innerHTML="";
+  scr.appendChild(el("h2",null,pass?"ROUND CLEARED!":"ROUND OVER"));
+  scr.appendChild(el("div","panel","Score: "+score+" / 10. "+(pass?"Clear counted ("+S.quiz[level]+" / 3 on this level).":"You need 8 of 10 with lives left to clear.")));
+  var r=el("div","row");
+  var b1=el("button","big","Play again");b1.onclick=function(){render("quiz",level)};r.appendChild(b1);
+  var b2=el("button","big","Games");b2.onclick=function(){go("games")};r.appendChild(b2);
+  scr.appendChild(r);
+ }
+ round();
+}
+/* ---------- memory ---------- */
+function scrMem(scr,level){
+ var pairs=level==="e"?6:level==="m"?8:10;
+ var got=SP.filter(function(s){return S.got[s.id]});
+ if(got.length<4){
+  scr.appendChild(el("div","panel center","Collect at least 4 cards on expeditions to play Card Memory. You have "+got.length+"."));
+  var r0=el("div","row");var b0=el("button","big","Go exploring");b0.onclick=function(){go("zones")};r0.appendChild(b0);scr.appendChild(r0);return;
+ }
+ var use=shuffle(got.slice()).slice(0,Math.min(pairs,got.length));
+ pairs=use.length;
+ var cards=shuffle(use.concat(use));
+ scr.appendChild(el("h2",null,"CARD MEMORY &middot; "+pairs+" PAIRS"));
+ var stat=el("div","small center","Find all "+pairs+" pairs to clear the board.");scr.appendChild(stat);
+ var grid=el("div","mgrid");grid.style.gridTemplateColumns="repeat(4,1fr)";scr.appendChild(grid);
+ var open=[],lock=false,found=0,moves=0;
+ cards.forEach(function(sp){
+  var b=el("button","mcard");b.dataset.sp=sp.id;
+  b.onclick=function(){
+   if(lock||b.classList.contains("open")||b.classList.contains("done"))return;
+   b.classList.add("open");b.innerHTML="";var mim=photoImg(sp,"mphoto");if(mim)b.appendChild(mim);else drawSprite(b,sp,{});sfx("flip");
+   open.push({b:b,sp:sp});
+   if(open.length===2){moves++;lock=true;
+    if(open[0].sp.id===open[1].sp.id){
+     setTimeout(function(){open.forEach(function(o){o.b.classList.add("done")});open=[];lock=false;found++;
+      stat.textContent="Pairs: "+found+" / "+pairs+" - moves: "+moves;
+      if(found===pairs){S.mem[level]=(S.mem[level]||0)+1;save();sfx("clear");
+       stat.innerHTML="<b>Board cleared!</b> Clears on this level: "+S.mem[level]+" / 3.";
+       var r=el("div","row");var b1=el("button","big","Play again");b1.onclick=function(){render("mem",level)};r.appendChild(b1);
+       var b2=el("button","big","Games");b2.onclick=function(){go("games")};r.appendChild(b2);scr.appendChild(r);}
+     },350);
+    }else{setTimeout(function(){open.forEach(function(o){o.b.classList.remove("open");o.b.innerHTML=""});open=[];lock=false},800)}
+   }
+  };
+  grid.appendChild(b);
+ });
+}
+/* ---------- sort ---------- */
+function scrSort(scr){
+ var qs=shuffle(SP.slice()).slice(0,12);
+ var qi=0,score=0,lives=3,answered=false;
+ scr.appendChild(el("h2",null,"OCEAN SORT"));
+ var stat=el("div","small center");scr.appendChild(stat);
+ var stage=el("div","panel center");scr.appendChild(stage);
+ var cats=el("div","catgrid");scr.appendChild(cats);
+ function round(){
+  if(lives<=0||qi>=12)return end();
+  var sp=qs[qi];qi++;answered=false;window.__poSortCat=sp.cat;
+  stat.textContent="Species "+qi+" / 12 - score "+score+" - lives "+lives;
+  stage.innerHTML="";
+  var ic=el("div");ic.style.width="180px";ic.style.margin="0 auto";var sim=photoImg(sp,"sortphoto");if(sim)ic.appendChild(sim);else drawSprite(ic,sp,{});
+  stage.appendChild(ic);
+  stage.appendChild(el("div",null,"<b>"+sp.n+"</b>"));
+  stage.appendChild(el("div","small","Which group does it belong to? (Game groups, not strict science)"));
+  cats.innerHTML="";
+  for(var c in CATS)(function(c){
+   var b=el("button",null,catIcon(c)+"<span>"+CATS[c]+"</span>");b.dataset.cat=c;
+   b.onclick=function(){
+    if(answered)return;answered=true;
+    if(c===sp.cat){b.classList.add("ok");score++;sfx("ok")}
+    else{b.classList.add("no");lives--;sfx("no")}
+    Array.prototype.forEach.call(cats.children,function(x){x.disabled=true});
+    setTimeout(round,900);
+   };
+   cats.appendChild(b);
+  })(c);
+ }
+ function end(){
+  var pass=score>=10&&lives>0;
+  if(pass){S.sort++;save();sfx("clear")}else sfx("no");
+  scr.innerHTML="";
+  scr.appendChild(el("h2",null,pass?"SORT CLEARED!":"SORT OVER"));
+  scr.appendChild(el("div","panel","Score: "+score+" / 12. "+(pass?"Clear counted ("+S.sort+" total).":"You need 10 of 12 with lives left.")));
+  var r=el("div","row");
+  var b1=el("button","big","Play again");b1.onclick=function(){render("sort")};r.appendChild(b1);
+  var b2=el("button","big","Games");b2.onclick=function(){go("games")};r.appendChild(b2);
+  scr.appendChild(r);
+ }
+ round();
+}
+/* ---------- boot ---------- */
+$("foot").innerHTML="Pixel Ocean - a Pixel Arcade game. Code and pixel art are original; card photos are credited to their photographers and sources are listed under How to Play.";
+renderPlayer($("player"));
+var h0=(location.hash||"").replace("#","");
+var m0=h0.match(/^(card|dive|quiz|mem)=(.+)$/);
+if(m0){NAV.push("home:");render(m0[1],m0[1]==="dive"?+m0[2]:m0[2])}
+else if(/^(zones|deck|games|help|sort)$/.test(h0)){NAV.push("home:");NAV.push(h0+":");render(h0)}
+else render("home");
+</script>
+</body></html>
