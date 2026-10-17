@@ -54,7 +54,7 @@ canvas.pix{image-rendering:pixelated}
 .mini{border:2px solid #2a4a6a;border-radius:6px;background:#071c33;padding:4px;cursor:pointer;text-align:center}
 .mini .nm{font-size:10.5px;color:#dff2ff;line-height:1.15;min-height:24px;display:block}
 .mini.got{border-color:#d9c48a}
-.mini.miss{opacity:.75}
+.mini.miss{opacity:.95}
 .chips{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}
 .chips button{min-height:32px;font-size:12px;padding:2px 8px}
 /* expedition */
@@ -84,6 +84,11 @@ canvas.pix{image-rendering:pixelated}
 .zcard h3{margin:2px 0;color:#7fd8ff;font-size:16px}
 .zbar{height:6px;background:#0d1e3a;border:1px solid #2a4a6a;margin-top:6px}
 .zbar i{display:block;height:100%;background:#3dff6e}
+.zhead{width:100%;border-radius:6px;display:block;margin-bottom:6px}
+.zcard.dim .zhead{filter:grayscale(.55) brightness(.65)}
+.mini .back{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;border-radius:4px;background:repeating-linear-gradient(45deg,#0d2f4f,#0d2f4f 8px,#123f66 8px,#123f66 16px);color:#7fd8ff;font-size:22px;font-weight:bold}
+.mcard{transition:transform .15s,border-color .15s,background .15s}
+.mcard.open{transform:scale(1.05)}
 kbd{border:1px solid #2a4a6a;padding:0 4px;font-size:11px}
 .csrc{font-size:9px;color:#5f86a0;margin:4px 0 0}
 .srcs summary{cursor:pointer;color:#7fd8ff;font-weight:bold;margin:8px 0}
@@ -1201,6 +1206,16 @@ function scrZones(scr){
   var un=zoneUnlocked(i);
   var card=el("div","zcard"+(un?"":" dim"));
   var spz=zoneSp(i),got=spz.filter(function(s){return S.got[s.id]}).length;
+  var zh=mkCan(344,64);zh.className="zhead";
+  (function(){var gg=zh.getContext("2d");gg.imageSmoothingEnabled=false;
+   var gr=gg.createLinearGradient(0,0,0,64);gr.addColorStop(0,z.top);gr.addColorStop(1,z.bot);gg.fillStyle=gr;gg.fillRect(0,0,344,64);
+   gg.fillStyle="rgba(255,255,255,.14)";gg.beginPath();gg.moveTo(52,0);gg.lineTo(92,0);gg.lineTo(52,64);gg.lineTo(12,64);gg.fill();gg.beginPath();gg.moveTo(190,0);gg.lineTo(218,0);gg.lineTo(178,64);gg.lineTo(150,64);gg.fill();
+   gg.fillStyle=z.floor;gg.fillRect(0,54,344,10);
+   var sig=spz.filter(function(s2){return !FLOOR_PLANS[s2.plan]})[0]||spz[0];
+   if(sig)gg.drawImage(spr(sig),250,3,86,58);
+   gg.fillStyle="rgba(174,230,255,.55)";[[310,18,3],[326,32,2.2],[292,38,1.8]].forEach(function(b){gg.beginPath();gg.arc(b[0],b[1],b[2],0,7);gg.fill()});
+  })();
+  card.appendChild(zh);
   var head=el("div",null,"<h3>"+(un?"":svgI(IC.lock,"#8fb6cc",14)+" ")+z.n+"</h3>");
   card.appendChild(head);
   card.appendChild(el("div","small",z.d+" Cards here: "+got+" / "+spz.length+". Clears: "+(S.clears[z.id]||0)+" / 3."));
@@ -1233,8 +1248,9 @@ function scrDeck(scr){
   if(deckFilter.cat&&sp.cat!==deckFilter.cat)return;
   var got=!!S.got[sp.id];
   var m=el("div","mini "+(got?"got":"miss"));
-  var ah=el("div");ah.style.background="linear-gradient(#104a72,#08233d)";ah.style.borderRadius="4px";
-  var dim=photoImg(sp,"dphoto");if(dim){if(!got)dim.style.filter="brightness(.22) saturate(.4)";ah.appendChild(dim)}else drawSprite(ah,sp,{dark:!got});
+  var ah=el("div");ah.style.borderRadius="4px";
+  if(!got){ah.className="back";ah.textContent="?"}
+  else{ah.style.background="linear-gradient(#104a72,#08233d)";var dim=photoImg(sp,"dphoto");if(dim)ah.appendChild(dim);else drawSprite(ah,sp,{})}
   m.appendChild(ah);
   m.appendChild(el("span","nm",(got?sp.n:"? ? ?")+"<br>"+cardNum(sp)));
   m.onclick=function(){if(got)go("card",sp.id);else{sfx("no");m.classList.add("on");setTimeout(function(){m.classList.remove("on")},300)}};
