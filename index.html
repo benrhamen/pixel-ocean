@@ -1421,7 +1421,7 @@ function scrGames(scr){
  }
  lvl("Who Am I?","quiz",S.quiz,"Clues appear one at a time. Name the species. 8 of 10 right with 3 lives clears a round.",function(l){go("quiz",l)});
  lvl("Card Memory","mem",S.mem,"Flip cards and match pairs from your collection. Finish the board to clear it.",function(l){go("mem",l)});
- var dd=lvl("Deep Descent","sub",S.sub,"Steer the sub deeper and dodge the corals. 3 hits ends the dive. Pass the target depth to count a clear - then the dive goes on. Deeper means faster, tighter gaps and drifting jellyfish. Unlimited has no target at all.",function(l){go("sub",l)});
+ var dd=lvl("Deep Descent","sub",S.sub,"Steer the sub deeper and dodge the corals. 3 hits ends the dive. Reach 3,000 m to count a clear - then the dive goes on. Harder dives run faster, with tighter gaps and drifting jellyfish. Unlimited has no target: it starts slow, then accelerates after 30 seconds.",function(l){go("sub",l)});
  var ur=el("div","row");
  var ub=el("button",null,"Unlimited - endless"+(S.subbest.u?"<br><span class='small'>best: "+S.subbest.u+" m</span>":""));
  ub.onclick=function(){go("sub","u")};ur.appendChild(ub);dd.appendChild(ur);
@@ -1432,7 +1432,7 @@ function scrGames(scr){
 }
 /* ---------- deep descent: dodge the corals ---------- */
 function scrSub(scr,level){
- var CONF={e:{name:"EASY",target:300,speed:90,gap:175,rows:2,cap:210,ramp:.12,tight:.02,mingap:125},m:{name:"MEDIUM",target:500,speed:105,gap:155,rows:1.8,cap:230,ramp:.15,tight:.025,mingap:115},h:{name:"HARD",target:800,speed:125,gap:140,rows:1.6,cap:240,ramp:.18,tight:.028,mingap:105},u:{name:"UNLIMITED",target:Infinity,speed:90,gap:175,rows:2,unl:1,cap:240,ramp:.12,tight:.02,mingap:120}}[level]||{name:"EASY",target:300,speed:90,gap:175,rows:2,cap:210,ramp:.12,tight:.02,mingap:125};
+ var CONF={e:{name:"EASY",target:3000,speed:100,gap:175,rows:2,cap:230,ramp:.12,tight:.02,mingap:125},m:{name:"MEDIUM",target:3000,speed:130,gap:155,rows:1.8,cap:265,ramp:.15,tight:.025,mingap:115},h:{name:"HARD",target:3000,speed:160,gap:140,rows:1.6,cap:300,ramp:.18,tight:.028,mingap:105},u:{name:"UNLIMITED",target:Infinity,speed:90,gap:175,rows:2,unl:1,cap:320,ramp:.12,tight:.02,mingap:120,warmup:30,uaccel:5}}[level]||{name:"EASY",target:3000,speed:100,gap:175,rows:2,cap:230,ramp:.12,tight:.02,mingap:125};
  CONF.gap0=CONF.gap;CONF.rows0=CONF.rows;
  scr.appendChild(el("h2",null,"DEEP DESCENT &middot; "+CONF.name));
  var wrap=el("div",null,null);wrap.id="divewrap";
@@ -1441,7 +1441,7 @@ function scrSub(scr,level){
  var overlay=el("div","center");overlay.style.cssText="position:absolute;inset:0;background:#04101cd9;display:none;overflow:auto;padding:10px;box-sizing:border-box;z-index:6";
  wrap.appendChild(overlay);
  scr.appendChild(wrap);
- scr.appendChild(el("div","small center",CONF.unl?"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. No target: deeper means faster, tighter gaps and drifting jellyfish.":"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. Pass "+CONF.target+" m to count a clear. Deeper means faster, tighter gaps and drifting jellyfish."));
+ scr.appendChild(el("div","small center",CONF.unl?"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. No target: starts slow, then accelerates after 30 seconds. Deeper means tighter gaps and drifting jellyfish.":"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. Reach "+CONF.target.toLocaleString("en-US")+" m to count a clear - then the dive goes on. Deeper means faster, tighter gaps and drifting jellyfish."));
  var g=cv.getContext("2d");g.imageSmoothingEnabled=false;g.scale(1.5,1.5);/*art detail 1.5x*/
  var W=380,H=460;
  D={raf:0,t:0,depth:0,hearts:3,invuln:0,over:false,paused:false,cleared:false,level:level,conf:CONF,rows:[],parts:[],sub:{x:W/2,y:330,tx:W/2,ty:330},spawnY:0,toast:toast,overlay:overlay,keys:{}};
@@ -1534,7 +1534,7 @@ function scrSub(scr,level){
   save();
   var ov=D.overlay;ov.innerHTML="";ov.style.display="block";
   ov.appendChild(el("h2",null,cleared?"TARGET DEPTH REACHED!":"SUB DAMAGED"));
-  ov.appendChild(el("div","panel",CONF.unl?("Depth: "+dm+" m.<br>Best unlimited: "+best+" m."+(dm>prev&&prev>0?"<br>New best!":"")):("Depth: "+dm+" m"+(cleared?" / "+CONF.target+" m":"")+".<br>Best on "+CONF.name.toLowerCase()+": "+best+" m.<br>"+((S.sub[lvl]||0)<3?"Clears: "+(S.sub[lvl]||0)+" / 3.":"Clears: "+(S.sub[lvl]||0)+" - unlock goal reached."))));
+  ov.appendChild(el("div","panel",CONF.unl?("Depth: "+dm.toLocaleString("en-US")+" m.<br>Best unlimited: "+best.toLocaleString("en-US")+" m."+(dm>prev&&prev>0?"<br>New best!":"")):("Depth: "+dm.toLocaleString("en-US")+" m"+(cleared?" / "+CONF.target.toLocaleString("en-US")+" m":"")+".<br>Best on "+CONF.name.toLowerCase()+": "+best.toLocaleString("en-US")+" m.<br>"+((S.sub[lvl]||0)<3?"Clears: "+(S.sub[lvl]||0)+" / 3.":"Clears: "+(S.sub[lvl]||0)+" - unlock goal reached."))));
   var r1=el("div","row");var b1=el("button","big","Dive again");b1.onclick=function(){render("sub",lvl)};r1.appendChild(b1);
   var b2=el("button","big","Games");b2.onclick=function(){go("games")};r1.appendChild(b2);
   ov.appendChild(r1);
@@ -1558,7 +1558,13 @@ function scrSub(scr,level){
   var s=D.sub;
   if(!D.paused&&!D.over){
    D.t+=dt;
-   var spd=Math.min(D.conf.cap,D.conf.speed+D.depth*D.conf.ramp);
+   var spd;
+   if(D.conf.unl){
+    var warm=D.conf.warmup||30;
+    if(D.t<warm)spd=D.conf.speed;
+    else{spd=Math.min(D.conf.cap,D.conf.speed+(D.t-warm)*(D.conf.uaccel||5));
+     if(!D.warmed){D.warmed=true;showToast("Speed rising!");sfx("flip")}}
+   }else spd=Math.min(D.conf.cap,D.conf.speed+D.depth*D.conf.ramp);
    D.conf.gap=Math.max(D.conf.mingap,D.conf.gap0-D.depth*D.conf.tight);
    D.conf.rows=Math.max(1.3,D.conf.rows0-D.depth*0.0009);
    D.depth+=spd*dt*.55;
@@ -1587,7 +1593,7 @@ function scrSub(scr,level){
    if(Math.random()<dt*3)D.parts.push({x:Math.random()*W,y:H+8,v:-30-Math.random()*40,r:1+Math.random()*2.5});
    D.parts.forEach(function(p){p.y+=p.v*dt});
    D.parts=D.parts.filter(function(p){return p.y>-10});
-   if(!D.conf.unl&&!D.cleared&&D.depth>=D.conf.target){D.cleared=true;S.sub[D.level]=(S.sub[D.level]||0)+1;save();sfx("clear");showToast("Target depth passed - clear "+(S.sub[D.level]||0)+((S.sub[D.level]||0)<3?" / 3":" - unlock goal reached")+"! The dive goes on.")}
+   if(!D.conf.unl&&!D.cleared&&D.depth>=D.conf.target){D.cleared=true;S.sub[D.level]=(S.sub[D.level]||0)+1;save();sfx("clear");showToast("3,000 m passed - clear "+(S.sub[D.level]||0)+((S.sub[D.level]||0)<3?" / 3":" - unlock goal reached")+"! The dive goes on.")}
   }
   var gr=g.createLinearGradient(0,0,0,H);
   var dk=D.conf.unl?Math.min(1,D.depth/1200):Math.min(1,D.depth/D.conf.target);
@@ -1603,7 +1609,7 @@ function scrSub(scr,level){
   subDraw(s.x,s.y,D.invuln>0);
   g.fillStyle="#0b0820cc";g.fillRect(0,0,W,26);
   g.fillStyle="#e9f7ff";g.font="bold 12px monospace";g.textAlign="left";
-  g.fillText(D.conf.unl||D.cleared?(Math.floor(D.depth)+" m - best "+(S.subbest[D.level]||0)+" m"):(Math.floor(D.depth)+" m / "+D.conf.target+" m"),8,17);
+  g.fillText(D.conf.unl||D.cleared?(Math.floor(D.depth).toLocaleString("en-US")+" m - best "+(S.subbest[D.level]||0).toLocaleString("en-US")+" m"):(Math.floor(D.depth).toLocaleString("en-US")+" m / "+D.conf.target.toLocaleString("en-US")+" m"),8,17);
   g.textAlign="right";
   for(var h2=0;h2<3;h2++){g.fillStyle=h2<D.hearts?"#ffd23f":"#2a4a6a";g.fillRect(W-20-h2*18,8,12,10)}
   D.raf=requestAnimationFrame(frame);
