@@ -1440,7 +1440,7 @@ function scrGames(scr){
  }
  lvl("Who Am I?","quiz",S.quiz,"Clues appear one at a time. Name the species. 8 of 10 right with 3 lives clears a round.",function(l){go("quiz",l)});
  lvl("Card Memory","mem",S.mem,"Flip cards and match pairs from your collection. Finish the board to clear it.",function(l){go("mem",l)});
- var dd=lvl("Deep Descent","sub",S.sub,"Steer the sub deeper and dodge the corals. 3 hits ends the dive. Reach 3,000 m to count a clear - then the dive goes on. Harder dives run faster, with tighter gaps and drifting jellyfish. Unlimited has no target: it starts slow, then accelerates after 30 seconds.",function(l){go("sub",l)});
+ var dd=lvl("Deep Descent","sub",S.sub,"Steer the sub deeper and dodge the corals. 3 hits ends the dive. Reach 3,000 m to count a clear - then the dive goes on. Harder dives run faster, with tighter gaps and drifting jellyfish. Speed steps up every 1,000 m. Unlimited has no target - the dive goes on until the hull gives out.",function(l){go("sub",l)});
  var ur=el("div","row");
  var ub=el("button",null,"Unlimited - endless"+(S.subbest.u?"<br><span class='small'>best: "+S.subbest.u+" m</span>":""));
  ub.onclick=function(){go("sub","u")};ur.appendChild(ub);dd.appendChild(ur);
@@ -1451,7 +1451,7 @@ function scrGames(scr){
 }
 /* ---------- deep descent: dodge the corals ---------- */
 function scrSub(scr,level){
- var CONF={e:{name:"EASY",target:3000,speed:100,gap:175,rows:2,cap:230,ramp:.12,tight:.02,mingap:125},m:{name:"MEDIUM",target:3000,speed:130,gap:155,rows:1.8,cap:265,ramp:.15,tight:.025,mingap:115},h:{name:"HARD",target:3000,speed:160,gap:140,rows:1.6,cap:300,ramp:.18,tight:.028,mingap:105},u:{name:"UNLIMITED",target:Infinity,speed:90,gap:175,rows:2,unl:1,cap:320,ramp:.12,tight:.02,mingap:120,warmup:30,uaccel:5}}[level]||{name:"EASY",target:3000,speed:100,gap:175,rows:2,cap:230,ramp:.12,tight:.02,mingap:125};
+ var CONF={e:{name:"EASY",target:3000,speed:110,gap:175,rows:2,cap:230,step:22,tight:.02,mingap:125},m:{name:"MEDIUM",target:3000,speed:140,gap:155,rows:1.8,cap:265,step:26,tight:.025,mingap:115},h:{name:"HARD",target:3000,speed:170,gap:140,rows:1.6,cap:300,step:30,tight:.028,mingap:105},u:{name:"UNLIMITED",target:Infinity,speed:110,gap:175,rows:2,unl:1,cap:320,step:24,tight:.02,mingap:120}}[level]||{name:"EASY",target:3000,speed:110,gap:175,rows:2,cap:230,step:22,tight:.02,mingap:125};
  CONF.gap0=CONF.gap;CONF.rows0=CONF.rows;
  scr.appendChild(el("h2",null,"DEEP DESCENT &middot; "+CONF.name));
  var wrap=el("div",null,null);wrap.id="divewrap";
@@ -1460,7 +1460,7 @@ function scrSub(scr,level){
  var overlay=el("div","center");overlay.style.cssText="position:absolute;inset:0;background:#04101cd9;display:none;overflow:auto;padding:10px;box-sizing:border-box;z-index:6";
  wrap.appendChild(overlay);
  scr.appendChild(wrap);
- scr.appendChild(el("div","small center",CONF.unl?"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. No target: starts slow, then accelerates after 30 seconds. Deeper means tighter gaps and drifting jellyfish.":"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. Reach "+CONF.target.toLocaleString("en-US")+" m to count a clear - then the dive goes on. Deeper means faster, tighter gaps and drifting jellyfish."));
+ scr.appendChild(el("div","small center",CONF.unl?"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. No target - the dive goes on. Speed steps up every 1,000 m; deeper means tighter gaps and drifting jellyfish.":"Steer the sub: drag anywhere or use arrow keys. Dodge the corals - 3 hits ends the dive. Reach "+CONF.target.toLocaleString("en-US")+" m to count a clear - then the dive goes on. Speed steps up every 1,000 m; deeper also means tighter gaps and drifting jellyfish."));
  var g=cv.getContext("2d");g.imageSmoothingEnabled=false;g.scale(1.5,1.5);/*art detail 1.5x*/
  var W=380,H=460;
  D={raf:0,t:0,depth:0,hearts:3,invuln:0,over:false,paused:false,cleared:false,level:level,conf:CONF,rows:[],parts:[],sub:{x:W/2,y:330,tx:W/2,ty:330},spawnY:0,toast:toast,overlay:overlay,keys:{}};
@@ -1577,13 +1577,10 @@ function scrSub(scr,level){
   var s=D.sub;
   if(!D.paused&&!D.over){
    D.t+=dt;
-   var spd;
-   if(D.conf.unl){
-    var warm=D.conf.warmup||30;
-    if(D.t<warm)spd=D.conf.speed;
-    else{spd=Math.min(D.conf.cap,D.conf.speed+(D.t-warm)*(D.conf.uaccel||5));
-     if(!D.warmed){D.warmed=true;showToast("Speed rising!");sfx("flip")}}
-   }else spd=Math.min(D.conf.cap,D.conf.speed+D.depth*D.conf.ramp);
+   var step=Math.floor(D.depth/1000);
+   if(D.spdStep==null)D.spdStep=step;
+   else if(step>D.spdStep){D.spdStep=step;showToast("Speed up!");sfx("flip")}
+   var spd=Math.min(D.conf.cap,D.conf.speed+step*D.conf.step);
    D.conf.gap=Math.max(D.conf.mingap,D.conf.gap0-D.depth*D.conf.tight);
    D.conf.rows=Math.max(1.3,D.conf.rows0-D.depth*0.0009);
    D.depth+=spd*dt*.55;
