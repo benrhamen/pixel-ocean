@@ -116,7 +116,7 @@ function save(){try{localStorage.setItem(SAVEKEY,JSON.stringify(S))}catch(e){}}
 function gotCount(){var n=0;for(var k in S.got)if(S.got[k])n++;return n}
 /* ---------- sound ---------- */
 var AC=null;
-function beep(f,d,type,g){if(!S.snd)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),v=AC.createGain();o.type=type||"sine";o.frequency.value=f;v.gain.value=g||.07;o.connect(v);v.connect(AC.destination);o.start();v.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+(d||.12));o.stop(AC.currentTime+(d||.12))}catch(e){}}
+function beep(f,d,type,g){if(!S.snd)return;try{try{if('audioSession'in navigator)navigator.audioSession.type='playback'}catch(e){}AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),v=AC.createGain();o.type=type||"sine";o.frequency.value=f;v.gain.value=g||.07;o.connect(v);v.connect(AC.destination);o.start();v.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+(d||.12));o.stop(AC.currentTime+(d||.12))}catch(e){}}
 function sfx(n){if(n==="scan"){beep(660,.09,"square",.05);setTimeout(function(){beep(990,.12,"square",.05)},90)}
 else if(n==="ok"){beep(523,.1);setTimeout(function(){beep(659,.1)},100);setTimeout(function(){beep(784,.18)},200)}
 else if(n==="no"){beep(196,.2,"sawtooth",.05)}
