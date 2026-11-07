@@ -1285,7 +1285,9 @@ function scrDive(scr,zi){
  var tgts={};
  var uncol=shuffle(spz.filter(function(s){return!S.got[s.id]}));
  var col=shuffle(spz.filter(function(s){return S.got[s.id]}));
- var targets=uncol.concat(col).slice(0,6);
+ // pick up to 6 targets, capping floor-dwellers at the 4 decor slots so every target can actually appear
+ var targets=[],fcount=0,tpool=uncol.concat(col);
+ for(var ti=0;ti<tpool.length&&targets.length<6;ti++){var ts0=tpool[ti];if(FLOOR_PLANS[ts0.plan]){if(fcount>=4)continue;fcount++}targets.push(ts0)}
  targets.forEach(function(sp){
   var t=el("div","tg");var tc=mkCan(44,32);var g=tc.getContext("2d");g.imageSmoothingEnabled=false;
   g.drawImage(spr(sp,true),0,0,44,31);t.appendChild(tc);
@@ -1297,19 +1299,29 @@ function scrDive(scr,zi){
  var g=cv.getContext("2d");g.imageSmoothingEnabled=false;
  var decor=[];
  var floorSp=spz.filter(function(s){return FLOOR_PLANS[s.plan]});
- shuffle(floorSp).slice(0,4).forEach(function(sp,i){
+ // floor targets always get a decor slot; any remaining slots show other floor species
+ var ftg=targets.filter(function(s){return FLOOR_PLANS[s.plan]});
+ var frest=shuffle(floorSp.filter(function(s){return ftg.indexOf(s)<0}));
+ ftg.concat(frest).slice(0,4).forEach(function(sp,i){
   decor.push({sp:sp,x:50+i*95+(i%2?20:-10),y:430-(sp.plan==="kelp"?30:0),sc:1.7});
  });
  var W=380,H=460;
  D={raf:0,zi:zi,z:z,air:95,t:0,swim:[],spawnT:0,scan:null,done:{},sub:{x:90,y:230},targets:targets,over:false,paused:false,toast:toast,overlay:overlay,tgts:tgts,airF:airF,decor:decor};
  function spawn(){
-  if(D.swim.length>=7)return;
-  var pool=[];
   var rem=D.targets.filter(function(sp){return!D.done[sp.id]&&!FLOOR_PLANS[sp.plan]&&!D.swim.some(function(c){return c.sp.id===sp.id})});
   var movers=spz.filter(function(s){return !FLOOR_PLANS[s.plan]});
-  if(rem.length&&Math.random()<.6)pool.push(rem[(Math.random()*rem.length)|0]);
-  else pool.push(movers[(Math.random()*movers.length)|0]);
-  var sp=pool[0];if(!sp)return;
+  var bias=(rem.length===1||D.air<30)?.85:.6;
+  var want=rem.length>0&&Math.random()<bias;
+  if(D.swim.length>=7){
+   if(!want)return;
+   // screen full but a target is due: retire a non-target swimmer (never the one being scanned)
+   var droppable=D.swim.filter(function(c){return !(D.scan&&D.scan.c===c)&&!rem.some(function(sp){return sp.id===c.sp.id})});
+   if(!droppable.length)return;
+   var d0=droppable[(Math.random()*droppable.length)|0];
+   D.swim=D.swim.filter(function(c){return c!==d0});
+  }
+  var sp=want?rem[(Math.random()*rem.length)|0]:movers[(Math.random()*movers.length)|0];
+  if(!sp)return;
   var dir=Math.random()<.5?1:-1;
   var y=AIR_PLANS[sp.plan]?40+Math.random()*70:80+Math.random()*300;
   var rare=sp.rar===3;
@@ -1355,7 +1367,10 @@ function scrDive(scr,zi){
   D.sub.tx=x;D.sub.ty=y;
   var best=null,bd=40;
   D.swim.forEach(function(c){var d=Math.hypot(c.x-x,c.y-y);if(d<bd){bd=d;best=c}});
-  D.decor.forEach(function(c){var d=Math.hypot(c.x-x,c.y-(c.sp.plan==="kelp"?400:430));if(d<bd+8){bd=d;best={sp:c.sp,x:c.x,y:c.y,deco:true}}});
+  D.decor.forEach(function(c){
+   var hh=56*c.sc,ww=80*c.sc,top=442-hh,cy=top+hh/2;
+   if(x>=c.x-ww/2-10&&x<=c.x+ww/2+10&&y>=top-10&&y<=448){var d=Math.hypot(c.x-x,cy-y);if(d<bd+26){bd=d;best={sp:c.sp,x:c.x,y:cy,deco:true}}}
+  });
   if(best&&!D.scan){D.scan={c:best,p:0}}
  });
  var last=0;
