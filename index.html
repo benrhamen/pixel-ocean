@@ -1637,9 +1637,265 @@ function scrSub(scr,level){
 }
 
 /* ---------- quiz ---------- */
+/* Diet categories: coarse food groups used to prove a diet clue rules out the
+   other choices. Cats err on the inclusive side - if a species might eat
+   something, the category is set - so disjoint sets are strong evidence the
+   clue is safe. DIET_ALT: d = corrected display diet (fills blanks, fixes
+   wrong or redundant wording), add = extra categories the short diet text
+   omits, broad = diet too vague to rule anything out. */
+var DIET_ALT={
+ cleanerwrasse:{d:"Parasites picked from other fish",add:"crust"},
+ ribboneel:{d:"Small fish"},
+ firegoby:{d:"Zooplankton such as copepods"},
+ longnosehawk:{d:"Small crustaceans"},
+ mandarin:{d:"Copepods, worms and fish eggs"},
+ sevengill:{d:"Fish, seals and carrion"},
+ electricray:{d:"Small fish"},
+ strawanemone:{d:"Plankton and tiny crustaceans"},
+ swordfish:{d:"Fish and squid"},
+ flyingsquid:{d:"Fish, shrimp and small squid"},
+ elepseal:{d:"Fish and squid"},
+ hourglass:{d:"Fish, squid and krill"},
+ rockcod:{d:"Krill, copepods and small fish"},
+ oarfish:{d:"Krill, small fish and squid"},
+ dragonfish:{d:"Small fish and crustaceans"},
+ bristlemouth:{d:"Tiny crustaceans and small fish"},
+ chimaera:{d:"Crabs, molluscs and worms"},
+ telescopefish:{d:"Small fish"},
+ forkbeard:{d:"Fish and crustaceans"},
+ snubnoseeel:{d:"Fish, squid and crustaceans"},
+ bigfinsquid:{d:"Small sea creatures (poorly known)",broad:1},
+ combjelly:{d:"Tiny crustaceans and small jellies"},
+ osedax:{d:"Bones from dead whales"},
+ ventworm:{d:"Bacteria"},
+ deepseacuke:{d:"Sunken food flakes"},
+ hagfish:{d:"Carrion, fish and worms"},
+ assfish:{d:"Small seafloor creatures",broad:1},
+ lizardfish:{d:"Fish, squid and crustaceans"},
+ seadevil:{d:"Fish and squid"},
+ pricklyshark:{d:"Fish and squid"},
+ seakrait:{d:"Small fish"},
+ chinstrap:{d:"Krill and small fish"},
+ macaroni:{d:"Krill and small fish"},
+ icefish:{d:"Krill and small fish"},
+ coralhind:{d:"Small fish, crustaceans and squid"},
+ albatross:{d:"Small fish, squid and crustaceans"},
+ stonefish:{d:"Small fish and shrimp"},
+ bluefin:{d:"Small fish and squid"},
+ fireflysquid:{d:"Small fish and squid"},
+ seabutterfly:{d:"Plankton"},
+ kelpbass:{d:"Fish and crustaceans"},
+ strawberrysquid:{d:"Fish and crustaceans"},
+ staghorn:{d:"Plankton, plus sunlight through its algae partners"},
+ blenny:{d:"Tiny particles combed from turf algae"},
+ pilotwhale:{d:"Squid and fish"},
+ greenlandshark:{d:"Fish, seals and carrion"},
+ basketstar:{d:"Plankton and small crustaceans"},
+ colossalsquid:{d:"Fish and other squid"},
+ soldierfish:{add:"fish"},
+ anemone:{add:"plank moll urch sun"},
+ giantanemone:{add:"plank"},
+ polarcod:{add:"fish"},
+ flyingfish:{add:"fish"},
+ manta:{add:"fish"},
+ capelin:{add:"fish"},
+ weddell:{add:"ceph crust"},
+ lionfish:{add:"crust"},
+ lingcod:{add:"ceph crust"},
+ cabezon:{add:"crust moll"},
+ harborporp:{add:"ceph crust"},
+ hammerhead:{add:"ceph crust"},
+ whitetip:{add:"ceph"},
+ marlin:{add:"ceph crust"},
+ sargfish:{add:"crust"},
+ booby:{add:"ceph"},
+ frigatebird:{add:"ceph"},
+ skua:{add:"carr big"},
+ arctictern:{add:"crust"},
+ viperfish:{add:"crust"},
+ roughy:{add:"crust ceph"},
+ sleepershark:{add:"ceph carr"},
+ greenhalibut:{add:"crust ceph"},
+ frilledshark:{add:"ceph"},
+ fanfin:{add:"crust"},
+ roughdogfish:{add:"ceph crust"},
+ scorpionfish:{add:"fish moll"},
+ boxfish:{add:"alg fish"},
+ bandedshrimp:{add:"crust worm moll carr"},
+ cleanershrimp:{add:"crust carr"},
+ copperband:{add:"crust"},
+ moray:{add:"ceph"},
+ napoleon:{add:"moll"},
+ clowntrigger:{add:"moll urch"},
+ rockfish:{add:"fish"},
+ gentoo:{add:"plank fish"},
+ minkewhale:{add:"plank fish"},
+ puffin:{add:"crust ceph"},
+ manowar:{add:"plank crust"},
+ hawksbill:{add:"jel alg"},
+ spermwhale:{add:"fish"},
+ rissos:{add:"fish"},
+ walrus:{add:"worm crust"},
+ harborseal:{add:"crust"},
+ tuna:{add:"crust"},
+ fulmar:{add:"carr"},
+ sunfish:{add:"crust ceph fish"},
+ beluga:{add:"ceph worm"},
+ commersons:{add:"crust"},
+ wolffish:{add:"moll urch"},
+ featherstar:{add:"carr"},
+ barreleye:{add:"plank"},
+ loosejaw:{add:"fish"},
+ sixgill:{add:"carr"},
+ sevenarmoct:{add:"fish"},
+ taningia:{add:"fish"},
+ ventoctopus:{add:"fish"},
+ mantis:{add:"fish"},
+ cuttlefish:{add:"fish"},
+ dayoctopus:{add:"moll"},
+ redoctopus:{add:"fish"},
+ puffer:{add:"moll crust urch carr",broad:1},
+ helmetjelly:{add:"plank fish"},
+ crystaljelly:{add:"jel"},
+ mertensia:{add:"jel fish"},
+ goblinshark:{add:"fish ceph"},
+ megamouth:{add:"jel fish"},
+ cookiecutter:{add:"fish big"},
+ hagfishp:{add:"carr"},
+ moorishid:{broad:1},
+ spanishdancer:{broad:1},
+ angelfish:{broad:1}
+};
+var DIET_PATS=[
+ ["sun",/sunlight|photosynthesis|algae partners/],
+ ["bact",/bacteria|microbes|chemosynthetic/],
+ ["jel",/jellyfish|jellies|siphonophore|man o' war|by-the-wind|gelatinous/],
+ ["ceph",/squid|octopus|cuttlefish/],
+ ["plank",/plankton|krill|copepod|amphipod|mysid|small crustacean|tiny crustacean|tiny shrimp|tiny drifting|suspended particle|filter-feed|sea butterflies/],
+ ["crust",/crustacean|crab|shrimp|prawn|krill|copepod|amphipod|mysid|lobster|barnacle/],
+ ["moll",/mollusc|mollusk|clam|mussel|bivalve|snail|limpet|chiton/],
+ ["worm",/worm(?!\s*\|)|polychaete/],
+ ["fish",/\bfish\b|finfish|\bcod\b|mackerel|lanternfish|\bherring\b/],
+ ["sponge",/sponge/],
+ ["coral",/coral polyp|corals?\b/],
+ ["urch",/urchin|starfish|sea star/],
+ ["alg",/algae|seaweed|kelp|seagrass/],
+ ["carr",/carrion|dead|scrap|detritus|sediment|flake|organic matter|scaveng|bones/],
+ ["para",/parasite|dead tissue/],
+ ["big",/seals|whales|penguins|\bbirds?\b|larger animals/],
+ ["hydr",/hydroid|anemone/]
+];
+var DIET_BROAD=/invertebrate|prey|creatures|small animals|bottom animals|poorly known|unknown|mystery/;
+function dietText(sp){var alt=DIET_ALT[sp.id];return (alt&&alt.d)||sp.diet||""}
+function dietCats(sp){
+ var alt=DIET_ALT[sp.id]||{};
+ var t=dietText(sp).toLowerCase();
+ var cats=[];
+ for(var i=0;i<DIET_PATS.length;i++)if(DIET_PATS[i][1].test(t))cats.push(DIET_PATS[i][0]);
+ if(cats.indexOf("plank")>=0&&cats.indexOf("crust")<0)cats.push("crust");
+ if(/\bcrustaceans?\b/.test(t)&&cats.indexOf("plank")<0)cats.push("plank");
+ if(alt.add)alt.add.split(" ").forEach(function(c){if(cats.indexOf(c)<0)cats.push(c)});
+ return cats;
+}
+function dietBroad(sp){
+ var alt=DIET_ALT[sp.id]||{};
+ if(alt.broad)return true;
+ var t=dietText(sp);
+ if(!t)return true;
+ return DIET_BROAD.test(t.toLowerCase());
+}
+function dietClue(sp){
+ var cats=dietCats(sp),t=dietText(sp);
+ if(cats.length===1&&cats[0]==="sun")return "It makes its own food from sunlight.";
+ if(cats.length===1&&cats[0]==="bact")return /inside|chemosynthetic/i.test(t)?"Bacteria inside it make its food.":"It eats bacteria.";
+ var m=t.replace(/;\s*sunlight via algae partners/i,", plus sunlight through its algae partners");
+ if(/algae partners/i.test(m)){
+  var core=m.replace(/,?\s*plus sunlight through its algae partners/i,"").replace(/^Filter-feeding on plankton/i,"plankton it filters from the water");
+  return "It eats "+core.charAt(0).toLowerCase()+core.slice(1)+", and its algae partners turn sunlight into food.";
+ }
+ if(/^Filter-feeding on plankton;?/i.test(m)){
+  var rest=m.replace(/^Filter-feeding on plankton;?\s*/i,"");
+  if(rest)return "It eats "+rest.charAt(0).toLowerCase()+rest.slice(1)+", and filters plankton from the water.";
+  return "It filters plankton from the water.";
+ }
+ m=m.replace(/,?\s*Filter-feeding on plankton/i," and plankton it filters from the water");
+ return "It eats: "+m+".";
+}
+var DIET_AUDITED={};
+"anemone angelfish bandedshrimp blenny bluedamsel bluetang boxfish braincoral bubblecoral cleanershrimp cleanerwrasse clownfish clowntrigger copperband coralhind cotstar cushionstar cuttlefish dayoctopus firegoby flameangel fusilier giantclam greenturtle halimeda hawksbill hermit lionfish longnosehawk mandarin mantis moorishid moray napoleon parrotfish porcupine puffer ribboneel scorpionfish seafan seagrass seakrait soldierfish spanishdancer staghorn stonefish tablecoral titantrigger torchcoral yellowtang".split(" ").forEach(function(id){DIET_AUDITED[id]=1});
+function dietDisjoint(sp,answers){
+ if(!DIET_AUDITED[sp.id]||dietBroad(sp)||!dietCats(sp).length)return false;
+ var sc=dietCats(sp);
+ for(var i=0;i<answers.length;i++){var a=answers[i];
+  if(a.id===sp.id)continue;
+  if(!DIET_AUDITED[a.id])return false;
+  if(dietBroad(a))return false;
+  var oc=dietCats(a);
+  for(var j=0;j<oc.length;j++)if(sc.indexOf(oc[j])>=0)return false;
+ }
+ return true;
+}
+function sizeInfo(s){
+ if(!s)return null;
+ var t=s.toLowerCase();
+ var m=t.match(/\d+(\.\d+)?/g);
+ if(!m)return null;
+ var v=Math.max.apply(null,m.map(Number));
+ if(!v)return null;
+ if(/kilogram|\bkg\b|weight|tonne/.test(t))return{cls:"w",v:/tonne/.test(t)?v*1000:v};
+ if(/\bmm\b|millimet/.test(t))return{cls:"l",v:v/10};
+ if(/hair|cell/.test(t))return{cls:"l",v:0.01};
+ if(/cm|centimet/.test(t))return{cls:"l",v:v};
+ if(/\bm\b|meter|metre/.test(t))return{cls:"l",v:v*100};
+ return null;
+}
+function sizeUnique(sp,answers){
+ var si=sizeInfo(sp.size);
+ if(!si)return false;
+ for(var i=0;i<answers.length;i++){var a=answers[i];if(a.id===sp.id)continue;
+  var ai=sizeInfo(a.size);
+  if(!ai||ai.cls!==si.cls)return false;
+  var big=Math.max(si.v,ai.v),small=Math.min(si.v,ai.v);
+  if(big/small<1.75)return false;
+ }
+ return true;
+}
+function zoneUnique(sp,answers){return answers.filter(function(a){return a.z===sp.z}).length===1}
+function comboUnique(sp,answers){
+ if(!DIET_AUDITED[sp.id]||dietBroad(sp)||!dietCats(sp).length)return false;
+ var sc=dietCats(sp);
+ for(var i=0;i<answers.length;i++){var a=answers[i];if(a.id===sp.id)continue;
+  if(a.z!==sp.z)continue;
+  if(!DIET_AUDITED[a.id])return false;
+  if(dietBroad(a))return false;
+  var oc=dietCats(a),hit=false;
+  for(var j=0;j<oc.length;j++)if(sc.indexOf(oc[j])>=0){hit=true;break}
+  if(hit)return false;
+ }
+ return true;
+}
+function sizeClue(sp){
+ var s=sp.size;
+ if(/average|over |smaller|each /i.test(s))return "Adult size: "+s+".";
+ var t=s.replace(/^length up to /i,"").replace(/^length /i,"").replace(/^weight up to /i,"").replace(/^wingspan up to /i,"wingspan ").replace(/^up to /i,"");
+ return "Maximum adult size: "+t+".";
+}
+function cluesFor(sp,answers){
+ var cs=[];
+ var homeOk=zoneUnique(sp,answers),dietOk=dietDisjoint(sp,answers);
+ if(homeOk)cs.push({t:"Game zone: "+ZONES[sp.z].n+".",k:"z"});
+ if(dietOk)cs.push({t:dietClue(sp),k:"d"});
+ if(sizeUnique(sp,answers))cs.push({t:sizeClue(sp),k:"s"});
+ if(!homeOk&&!dietOk&&comboUnique(sp,answers)){
+  var d=dietText(sp).replace(/;.*$/,"").replace(/, plus.*$/,"").toLowerCase();
+  cs.push({t:"It lives in the "+ZONES[sp.z].n+" and eats "+d+".",k:"c"});
+ }
+ cs.push({t:sp.fact,k:"f"});
+ return cs;
+}
 function scrQuiz(scr,level){
  var pool=level==="e"?SP.filter(function(s){return s.z===0}):level==="m"?SP.filter(function(s){return s.z<=2}):SP.slice();
- var qs=shuffle(pool.slice()).slice(0,10);
+ var asked={};
  var qi=0,score=0,lives=3,ci=0,answered=false;
  scr.appendChild(el("h2",null,"WHO AM I? &middot; "+{e:"EASY",m:"MEDIUM",h:"HARD"}[level]));
  var status=el("div","small center");scr.appendChild(status);
@@ -1647,18 +1903,33 @@ function scrQuiz(scr,level){
  var more=el("button","opt","Show another clue");scr.appendChild(more);
  var opts=el("div");scr.appendChild(opts);
  var sp,answers;
- function cluesFor(sp){var cs=[{t:"Home: "+ZONES[sp.z].n+".",v:"z"+sp.z}];if(sp.diet)cs.push({t:"It eats: "+sp.diet+".",v:"d"+sp.diet});if(sp.size)cs.push({t:"Size: "+sp.size+".",v:"s"+sp.size});cs.push({t:sp.fact,v:"f"+sp.id});
-  cs.forEach(function(c){c.n=answers.filter(function(a){return ("z"+a.z)===c.v||("d"+a.diet)===c.v||("s"+a.size)===c.v||("f"+a.id)===c.v}).length});
-  cs.sort(function(a,b){return a.n-b.n});return cs.map(function(c){return c.t})}
+ var qclues=[];
  function round(){
   if(lives<=0||qi>=10)return end();
-  answered=false;ci=0;sp=qs[qi];qi++;
-  var others=shuffle(pool.filter(function(s){return s.id!==sp.id})).slice(0,3);
-  answers=shuffle([sp].concat(others));
+  answered=false;ci=0;
+  var cand=pool.filter(function(s){return !asked[s.id]});
+  if(cand.length<4)return end();
+  var pick=null;
+  for(var tries=0;tries<80&&!pick;tries++){
+   var spTry=cand[Math.floor(Math.random()*cand.length)];
+   var others=shuffle(pool.filter(function(s){return s.id!==spTry.id})).slice(0,3);
+   var as=shuffle([spTry].concat(others));
+   var cs=cluesFor(spTry,as);
+   if(cs.length&&cs[0].k!=="f")pick={sp:spTry,answers:as,clues:cs};
+  }
+  if(!pick){
+   var spTry2=cand[0];
+   var others2=shuffle(pool.filter(function(s){return s.id!==spTry2.id})).slice(0,3);
+   var as2=shuffle([spTry2].concat(others2));
+   pick={sp:spTry2,answers:as2,clues:cluesFor(spTry2,as2)};
+  }
+  sp=pick.sp;asked[sp.id]=1;qi++;
+  answers=pick.answers;
+  qclues=pick.clues.map(function(c){return c.t});
   status.innerHTML="Question "+qi+" / 10 &middot; score "+score+" &middot; lives "+"&#9733;".repeat(lives);
   clues.innerHTML="";opts.innerHTML="";
   addClue();
-  more.style.display="";more.onclick=function(){if(ci<4){addClue();sfx("flip")}};
+  more.style.display="";more.onclick=function(){if(ci<qclues.length){addClue();sfx("flip")}};
   window.__poQuizSp=sp.id;
   answers.forEach(function(a){
    var b=el("button","opt");b.dataset.sp=a.id;
@@ -1676,7 +1947,7 @@ function scrQuiz(scr,level){
    opts.appendChild(b);
   });
  }
- function addClue(){var cs=cluesFor(sp);if(ci<cs.length){clues.appendChild(el("div","clue",cs[ci]));ci++}if(ci>=4)more.style.display="none"}
+ function addClue(){if(ci<qclues.length){clues.appendChild(el("div","clue",qclues[ci]));ci++}if(ci>=qclues.length)more.style.display="none"}
  function end(){
   var pass=score>=8&&lives>0;
   if(pass){S.quiz[level]=(S.quiz[level]||0)+1;save();sfx("clear")}else sfx("no");
